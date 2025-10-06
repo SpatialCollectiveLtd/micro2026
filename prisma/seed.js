@@ -57,6 +57,32 @@ async function main() {
     },
   })
 
+  // Seed a few panoramic images (replace URLs with your CDN/storage later)
+  const imagesPayload = [
+    { url: 'https://images.unsplash.com/photo-1581094397580-d0b2f7db537a?q=80&w=2400&auto=format', question: 'Is there a public water point visible?' },
+    { url: 'https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=2400&auto=format', question: 'Is there a community waste bin present?' },
+    { url: 'https://images.unsplash.com/photo-1518309632010-23f5f3c5c0b6?q=80&w=2400&auto=format', question: 'Is there any street lighting installed?' },
+  ]
+  const images = []
+  for (const img of imagesPayload) {
+    const rec = await prisma.image.create({ data: img })
+    images.push(rec)
+  }
+
+  // Assign a few tasks to worker1 (uncompleted)
+  const worker1 = await prisma.user.findUnique({ where: { phone: worker1Phone } })
+  if (worker1 && worker1.settlementId) {
+    for (const img of images) {
+      await prisma.task.create({
+        data: {
+          userId: worker1.id,
+          settlementId: worker1.settlementId,
+          imageId: img.id,
+        },
+      })
+    }
+  }
+
   console.log('Seed completed successfully')
 }
 

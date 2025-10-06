@@ -84,11 +84,9 @@ export default async function DashboardPage({ cookies }) {
           <div className="flex-1">
             <div className="text-2xl font-semibold">{completedToday} / {goal}</div>
             <div className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Daily completion</div>
-            <form action="#" method="post" className="mt-4">
-              <button type="submit" className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                Start Task
-              </button>
-            </form>
+            <a href="/tasks" className="mt-4 inline-block rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+              Start Task
+            </a>
           </div>
         </div>
 

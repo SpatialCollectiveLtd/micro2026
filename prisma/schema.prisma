@@ -20,6 +20,7 @@ model User {
   settlementId String?
   settlement   Settlement? @relation(fields: [settlementId], references: [id])
   tasks        Task[]
+  responses    Response[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -60,10 +61,40 @@ model Task {
   user         User     @relation(fields: [userId], references: [id])
   settlementId String
   settlement   Settlement @relation(fields: [settlementId], references: [id])
+  imageId      String
+  image        Image    @relation(fields: [imageId], references: [id])
+  responses    Response[]
   completed    Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   @@index([userId, createdAt])
+  @@index([completed, createdAt])
   @@map("tasks")
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  question  String
+  active    Boolean  @default(true)
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("images")
+}
+
+model Response {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  answer    Boolean
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([taskId])
+  @@map("responses")
 }
