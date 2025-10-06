@@ -26,16 +26,25 @@ export async function GET(request) {
   const rate = Number(process.env.PAY_PER_TASK || '0')
   if (!from || !to) return Response.json({ ok: false, error: 'Invalid date range' }, { status: 400 })
 
-  const tasks = await prisma.task.findMany({ where: { completed: true, updatedAt: { gte: from, lte: to } }, include: { user: true, image: true, settlement: true } })
-  const totalTasks = tasks.length
-  const totalPaid = +(totalTasks * rate).toFixed(2)
+  const reports = await prisma.dailyReport.findMany({ where: { date: { gte: from, lte: to } }, include: { user: true } })
+  const totalTasks = reports.reduce((s, r) => s + r.totalTasks, 0)
+  const totalPaid = reports.reduce((s, r) => s + r.totalPay, 0)
 
   if (format === 'csv') {
-    const header = ['taskId','userPhone','role','settlement','imageUrl','updatedAt','amount']
+    const header = ['date','userPhone','role','totalTasks','correct','accuracy','basePay','bonusPay','totalPay']
     const lines = [header.join(',')]
-    for (const t of tasks) {
-      const amount = rate.toFixed(2)
-      lines.push([t.id, t.user.phone, t.user.role, t.settlement?.name || '', t.image?.url || '', t.updatedAt.toISOString(), amount].map(v => `"${(v ?? '').toString().replace(/"/g,'""')}"`).join(','))
+    for (const r of reports) {
+      lines.push([
+        r.date.toISOString().slice(0,10),
+        r.user?.phone || '',
+        r.user?.role || '',
+        r.totalTasks,
+        r.correct,
+        r.accuracy,
+        r.basePay.toFixed(2),
+        r.bonusPay.toFixed(2),
+        r.totalPay.toFixed(2),
+      ].map(v => `"${(v ?? '').toString().replace(/"/g,'""')}"`).join(','))
     }
     const csv = lines.join('\n')
     return new Response(csv, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename="payments.csv"' } })
