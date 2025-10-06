@@ -18,7 +18,17 @@ export async function GET(request) {
 
   const [completedToday, notices] = await Promise.all([
     prisma.task.count({ where: { userId: user.id, completed: true, createdAt: { gte: start, lte: end } } }),
-    prisma.notice.findMany({ where: { active: true }, orderBy: { createdAt: 'desc' }, take: 10 }),
+    prisma.notice.findMany({
+      where: {
+        active: true,
+        OR: [
+          { allUsers: true },
+          { settlements: { some: { settlementId: user.settlementId || '' } } },
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    }),
   ])
 
   return Response.json({ ok: true, user, completedToday, notices })

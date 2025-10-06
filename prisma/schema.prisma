@@ -15,12 +15,14 @@ datasource db {
 
 model User {
   id           String      @id @default(cuid())
+  name         String?
   phone        String      @unique
   role         UserRole    @default(WORKER)
   settlementId String?
   settlement   Settlement? @relation(fields: [settlementId], references: [id])
   tasks        Task[]
   responses    Response[]
+  active       Boolean     @default(true)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -34,6 +36,7 @@ model Settlement {
   users     User[]
   tasks     Task[]
   campaignLinks CampaignSettlement[]
+  noticeLinks NoticeSettlement[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -50,10 +53,19 @@ model Notice {
   title     String
   message   String
   active    Boolean  @default(true)
+  priority  NoticePriority @default(MEDIUM)
+  allUsers  Boolean  @default(true)
+  settlements NoticeSettlement[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("notices")
+}
+
+enum NoticePriority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 model Task {
@@ -128,4 +140,15 @@ model CampaignSettlement {
 
   @@unique([campaignId, settlementId])
   @@map("campaign_settlements")
+}
+
+model NoticeSettlement {
+  id           String     @id @default(cuid())
+  noticeId     String
+  settlementId String
+  notice       Notice     @relation(fields: [noticeId], references: [id])
+  settlement   Settlement @relation(fields: [settlementId], references: [id])
+
+  @@unique([noticeId, settlementId])
+  @@map("notice_settlements")
 }

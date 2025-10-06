@@ -5,6 +5,9 @@ export default function AdminLayout({ children }) {
         <div className="text-lg font-semibold">Admin</div>
         <nav className="mt-4 space-y-2 text-sm">
           <a className="block rounded px-3 py-2 hover:bg-white dark:hover:bg-neutral-800" href="/admin/campaigns">Campaigns</a>
+          <a className="block rounded px-3 py-2 hover:bg-white dark:hover:bg-neutral-800" href="/admin/users">Users</a>
+          <a className="block rounded px-3 py-2 hover:bg-white dark:hover:bg-neutral-800" href="/admin/notices">Notices</a>
+          <a className="block rounded px-3 py-2 hover:bg-white dark:hover:bg-neutral-800" href="/admin/payments">Payments</a>
         </nav>
       </aside>
       <main className="flex-1 p-4 sm:p-8">{children}</main>
