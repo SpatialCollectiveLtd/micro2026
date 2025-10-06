@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
+    "clsx": "^2.1.1",
     "next": "15.5.4",
     "photo-sphere-viewer": "^4.8.1",
     "react": "19.1.0",

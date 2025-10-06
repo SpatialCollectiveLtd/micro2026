@@ -33,6 +33,7 @@ model Settlement {
   location  String?
   users     User[]
   tasks     Task[]
+  campaignLinks CampaignSettlement[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -63,6 +64,8 @@ model Task {
   settlement   Settlement @relation(fields: [settlementId], references: [id])
   imageId      String
   image        Image    @relation(fields: [imageId], references: [id])
+  campaignId   String?
+  campaign     Campaign? @relation(fields: [campaignId], references: [id])
   responses    Response[]
   completed    Boolean   @default(false)
   createdAt    DateTime  @default(now())
@@ -77,6 +80,8 @@ model Image {
   id        String   @id @default(cuid())
   url       String
   question  String
+  campaignId String?
+  campaign  Campaign? @relation(fields: [campaignId], references: [id])
   active    Boolean  @default(true)
   tasks     Task[]
   createdAt DateTime @default(now())
@@ -97,4 +102,29 @@ model Response {
   @@index([userId, createdAt])
   @@index([taskId])
   @@map("responses")
+}
+
+model Campaign {
+  id        String   @id @default(cuid())
+  title     String
+  question  String
+  active    Boolean  @default(true)
+  images    Image[]
+  tasks     Task[]
+  settlements CampaignSettlement[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("campaigns")
+}
+
+model CampaignSettlement {
+  id           String     @id @default(cuid())
+  campaignId   String
+  settlementId String
+  campaign     Campaign   @relation(fields: [campaignId], references: [id])
+  settlement   Settlement @relation(fields: [settlementId], references: [id])
+
+  @@unique([campaignId, settlementId])
+  @@map("campaign_settlements")
 }
