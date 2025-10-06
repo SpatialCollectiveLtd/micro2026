@@ -1,6 +1,5 @@
 import prisma from '@/lib/prisma'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import Badge from '@/components/ui/badge'
 import CampaignActiveToggle from '@/components/CampaignActiveToggle'
 import { Table, THead, TH, TR, TD } from '@/components/ui/table'
 
@@ -54,12 +53,7 @@ export default async function CampaignDetailPage({ params }) {
           <h1 className="text-2xl font-semibold">{campaign.title}</h1>
           <p className="text-sm text-neutral-500">{campaign.question}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge className={campaign.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : ''}>
-            {campaign.active ? 'Active' : 'Inactive'}
-          </Badge>
-          <CampaignActiveToggle id={campaign.id} initialActive={campaign.active} />
-        </div>
+        <CampaignActiveToggle id={campaign.id} initialActive={campaign.active} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
