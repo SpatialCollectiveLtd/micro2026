@@ -82,6 +82,7 @@ model Image {
   question  String
   campaignId String?
   campaign  Campaign? @relation(fields: [campaignId], references: [id])
+  groundTruth Boolean?
   active    Boolean  @default(true)
   tasks     Task[]
   createdAt DateTime @default(now())

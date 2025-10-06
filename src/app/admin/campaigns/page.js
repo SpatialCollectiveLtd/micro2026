@@ -1,4 +1,7 @@
 import prisma from '@/lib/prisma'
+import { Table, THead, TR, TH, TD } from '@/components/ui/table'
+import Button from '@/components/ui/button'
+import Badge from '@/components/ui/badge'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,36 +20,42 @@ export default async function CampaignsPage() {
     <div className="mx-auto max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Campaigns</h1>
-        <a href="/admin/campaigns/new" className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">Create New Campaign</a>
+        <Button asChild>
+          <a href="/admin/campaigns/new">Create New Campaign</a>
+        </Button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-neutral-200 bg-neutral-50 text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
+      <Table>
+        <THead>
+          <tr>
+            <TH>Title</TH>
+            <TH>Status</TH>
+            <TH>Images</TH>
+            <TH>Created</TH>
+          </tr>
+        </THead>
+        <tbody>
+          {campaigns.map((c) => (
+            <TR key={c.id}>
+              <TD className="font-medium text-neutral-800 dark:text-neutral-200">
+                <a href={`/admin/campaigns/${c.id}`} className="block w-full hover:underline">{c.title}</a>
+              </TD>
+              <TD>
+                <Badge className={c.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : ''}>
+                  {c.active ? 'Active' : 'Inactive'}
+                </Badge>
+              </TD>
+              <TD>{c.images.length}</TD>
+              <TD>{new Date(c.createdAt).toLocaleString()}</TD>
+            </TR>
+          ))}
+          {campaigns.length === 0 && (
             <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Images</th>
-              <th className="px-4 py-3">Created</th>
+              <TD className="px-4 py-6 text-center text-neutral-500" colSpan={4}>No campaigns yet.</TD>
             </tr>
-          </thead>
-          <tbody>
-            {campaigns.map((c) => (
-              <tr key={c.id} className="border-t border-neutral-200 dark:border-neutral-800">
-                <td className="px-4 py-3">{c.title}</td>
-                <td className="px-4 py-3"><span className="rounded bg-neutral-100 px-2 py-1 text-xs dark:bg-neutral-800">{c.active ? 'Active' : 'Inactive'}</span></td>
-                <td className="px-4 py-3">{c.images.length}</td>
-                <td className="px-4 py-3">{new Date(c.createdAt).toLocaleString()}</td>
-              </tr>
-            ))}
-            {campaigns.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-neutral-500">No campaigns yet.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          )}
+        </tbody>
+      </Table>
     </div>
   )
 }
