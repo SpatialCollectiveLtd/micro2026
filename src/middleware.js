@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
+import { unsealData } from 'iron-session/edge'
 
-export function middleware(request) {
+export async function middleware(request) {
   const { pathname } = request.nextUrl
 
   // Protect all routes under /dashboard, /tasks, /earnings, /profile
@@ -12,21 +13,23 @@ export function middleware(request) {
 
   if (!isProtected && !isAdminRoute) return NextResponse.next()
 
-  const session = request.cookies.get('mt_session')?.value
-  if (!session) {
+  const token = request.cookies.get('mt_session')?.value
+  if (!token) {
     const loginUrl = new URL('/login', request.url)
     return NextResponse.redirect(loginUrl)
   }
 
   // Parse role for admin routes
   if (isAdminRoute) {
+    let decoded = null
+    // Try iron-session sealed cookie first
     try {
-      const decoded = JSON.parse(Buffer.from(session, 'base64').toString('utf8'))
-      if (decoded.role !== 'ADMIN') {
-        const loginUrl = new URL('/login', request.url)
-        return NextResponse.redirect(loginUrl)
-      }
+      decoded = await unsealData(token, { password: process.env.SESSION_SECRET || 'dev-secret-change-me' })
     } catch {
+      // Fallback to legacy base64 JSON for existing cookies
+      try { decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf8')) } catch {}
+    }
+    if (!decoded || decoded.role !== 'ADMIN') {
       const loginUrl = new URL('/login', request.url)
       return NextResponse.redirect(loginUrl)
     }

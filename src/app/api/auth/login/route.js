@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma'
+import { createSessionCookie } from '@/lib/session'
 
 function badRequest(message) {
   return Response.json({ ok: false, error: message }, { status: 400 })
@@ -41,16 +42,9 @@ export async function POST(request) {
       return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Minimal session cookie (signed sessions recommended later)
-    const cookieValue = Buffer.from(
-      JSON.stringify({ id: user.id, role: user.role, sid: crypto.randomUUID() })
-    ).toString('base64')
-
     const headers = new Headers({ 'content-type': 'application/json' })
-    headers.append(
-      'set-cookie',
-      `mt_session=${cookieValue}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}` // 7 days
-    )
+    const cookie = await createSessionCookie({ id: user.id, role: user.role, sid: crypto.randomUUID() })
+    headers.append('set-cookie', cookie)
 
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers })
   } catch (e) {

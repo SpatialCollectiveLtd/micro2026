@@ -15,17 +15,28 @@ export async function GET(request) {
   const decoded = requireAdmin(request)
   if (!decoded) return unauthorized()
   const { searchParams } = new URL(request.url)
-  const phone = searchParams.get('phone') || undefined
-  const role = searchParams.get('role') || undefined
-  const settlementId = searchParams.get('settlementId') || undefined
+    const phone = searchParams.get('phone') || undefined
+    const role = searchParams.get('role') || undefined
+    const settlementId = searchParams.get('settlementId') || undefined
+    const page = Math.max(1, Number(searchParams.get('page') || '1'))
+    const pageSize = Math.min(100, Math.max(5, Number(searchParams.get('pageSize') || '20')))
+    const sort = searchParams.get('sort') || 'createdAt:desc'
+    const [sortField, sortDir] = sort.split(':')
 
   const where = {
     ...(phone ? { phone: { contains: phone } } : {}),
     ...(role ? { role } : {}),
     ...(settlementId ? { settlementId } : {}),
   }
-  const users = await prisma.user.findMany({ where, include: { settlement: true }, orderBy: { createdAt: 'desc' } })
-  return Response.json({ ok: true, users })
+    const orderBy = {}
+    if (['name','phone','role','createdAt'].includes(sortField)) orderBy[sortField] = sortDir === 'asc' ? 'asc' : 'desc'
+    else orderBy['createdAt'] = 'desc'
+
+    const [total, users] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({ where, include: { settlement: true }, orderBy, skip: (page-1)*pageSize, take: pageSize })
+    ])
+    return Response.json({ ok: true, users, page, pageSize, total })
 }
 
 export async function POST(request) {

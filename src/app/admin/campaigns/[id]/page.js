@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import CampaignActiveToggle from '@/components/CampaignActiveToggle'
 import { Table, THead, TH, TR, TD } from '@/components/ui/table'
+import InlineTruthEditor from '@/components/InlineTruthEditor'
 
 export const dynamic = 'force-dynamic'
 
@@ -95,7 +96,9 @@ export default async function CampaignDetailPage({ params }) {
                       <span className="truncate max-w-[420px] text-neutral-700 dark:text-neutral-300">{img.url}</span>
                     </div>
                   </TD>
-                  <TD>{img.groundTruth == null ? '-' : (img.groundTruth ? 'Yes' : 'No')}</TD>
+                  <TD>
+                    <InlineTruthEditor id={img.id} initial={img.groundTruth} />
+                  </TD>
                   <TD>{imageResponseCounts[img.id] || 0}</TD>
                 </TR>
               ))}
