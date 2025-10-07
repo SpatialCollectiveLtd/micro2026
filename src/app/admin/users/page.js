@@ -108,6 +108,7 @@ export default function UsersPage() {
             <TH>Role</TH>
             <TH>Settlement</TH>
             <TH>Status</TH>
+            <TH>Actions</TH>
           </tr>
         </THead>
         <tbody>
@@ -118,6 +119,27 @@ export default function UsersPage() {
               <TD>{u.role}</TD>
               <TD>{u.settlement?.name || '-'}</TD>
               <TD>{u.active ? 'Active' : 'Inactive'}</TD>
+              <TD>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={async () => {
+                    const name = prompt('Edit name (leave blank for none):', u.name || '')
+                    if (name === null) return
+                    await fetch(`/api/admin/users/${u.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) })
+                    await loadData(filters)
+                  }}>Edit</Button>
+                  <Button variant="outline" onClick={async () => {
+                    const next = !u.active
+                    if (!next && !confirm('Suspend this user? They will not be able to access tasks.')) return
+                    await fetch(`/api/admin/users/${u.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: next }) })
+                    await loadData(filters)
+                  }}>{u.active ? 'Suspend' : 'Unsuspend'}</Button>
+                  <Button variant="outline" onClick={async () => {
+                    if (!confirm('Delete this user? This cannot be undone.')) return
+                    await fetch(`/api/admin/users/${u.id}`, { method: 'DELETE' })
+                    await loadData(filters)
+                  }}>Delete</Button>
+                </div>
+              </TD>
             </TR>
           ))}
         </tbody>

@@ -18,11 +18,12 @@ export async function POST(request) {
   const message = (form.get('message') || '').toString().trim()
   const priority = (form.get('priority') || 'MEDIUM').toString().toUpperCase()
   const allUsers = form.get('allUsers') === 'on'
+  const userId = (form.get('userId') || '').toString().trim() || null
   const selectedSettlements = form.getAll('settlements').map(v => v.toString())
   if (!title || !message) return Response.json({ ok: false, error: 'Missing fields' }, { status: 400 })
   if (!['LOW','MEDIUM','HIGH'].includes(priority)) return Response.json({ ok: false, error: 'Invalid priority' }, { status: 400 })
 
-  const notice = await prisma.notice.create({ data: { title, message, priority, allUsers, active: true } })
+  const notice = await prisma.notice.create({ data: { title, message, priority, allUsers, active: true, userId } })
   if (!allUsers && selectedSettlements.length > 0) {
     await prisma.$transaction(
       selectedSettlements.map(sid => prisma.noticeSettlement.create({ data: { noticeId: notice.id, settlementId: sid } }))

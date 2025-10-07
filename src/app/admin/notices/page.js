@@ -8,6 +8,7 @@ import { Table, THead, TR, TH, TD } from '@/components/ui/table'
 
 export default function NoticesPage() {
   const [settlements, setSettlements] = useState([])
+  const [users, setUsers] = useState([])
   const [notices, setNotices] = useState([])
   const [form, setForm] = useState({ title: '', message: '', priority: 'MEDIUM', allUsers: true, settlements: [] })
   const [msg, setMsg] = useState({ type: '', text: '' })
@@ -16,6 +17,7 @@ export default function NoticesPage() {
   useEffect(() => {
     const load = async () => {
       const sres = await fetch('/api/admin/settlements'); const s = await sres.json(); if (s.ok) setSettlements(s.settlements)
+      const ures = await fetch('/api/admin/users?pageSize=100'); const u = await ures.json(); if (u.ok) setUsers(u.users)
       await reload()
     }
     load()
@@ -25,7 +27,7 @@ export default function NoticesPage() {
     const nres = await fetch('/api/admin/notices'); const n = await nres.json(); if (n.ok) setNotices(n.notices)
   }
 
-  const valid = form.title.trim() && form.message.trim() && (!form.allUsers ? form.settlements.length > 0 : true)
+  const valid = form.title.trim() && form.message.trim() && (!form.allUsers ? (form.settlements.length > 0 || form.userId) : true)
 
   async function onSubmit(e) {
     e.preventDefault()
@@ -38,6 +40,7 @@ export default function NoticesPage() {
       fd.append('message', form.message.trim())
       fd.append('priority', form.priority)
       if (form.allUsers) fd.append('allUsers', 'on')
+  if (form.userId) fd.append('userId', form.userId)
       for (const sid of form.settlements) fd.append('settlements', sid)
       const res = await fetch('/api/admin/notices', { method: 'POST', body: fd })
       if (!res.ok) {
@@ -70,6 +73,14 @@ export default function NoticesPage() {
               <option value="HIGH">High</option>
             </select>
           </div>
+        </div>
+        <div>
+          <div className="text-xs text-neutral-500 mb-1">Target User (optional)</div>
+          <select className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={form.userId || ''} onChange={(e) => setForm(f => ({ ...f, userId: e.target.value || null }))}>
+            <option value="">— None —</option>
+            {users.map(u => <option key={u.id} value={u.id}>{u.name || u.phone}</option>)}
+          </select>
+          <div className="mt-1 text-xs text-neutral-500">If set, this notice will also appear for the selected user.</div>
         </div>
         <div>
           <div className="text-xs text-neutral-500 mb-1">Message</div>

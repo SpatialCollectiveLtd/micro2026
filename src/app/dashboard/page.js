@@ -12,13 +12,14 @@ async function getData(userId) {
   const end = new Date()
   end.setHours(23, 59, 59, 999)
 
-  const [completedToday, notices] = await Promise.all([
+  const [user, completedToday, notices] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
     prisma.task.count({
       where: { userId, completed: true, createdAt: { gte: start, lte: end } },
     }),
     prisma.notice.findMany({ where: { active: true }, orderBy: { createdAt: 'desc' }, take: 10 }),
   ])
-  return { completedToday, notices }
+  return { user, completedToday, notices }
 }
 
 function ProgressRing({ current = 0, goal = 300 }) {
@@ -65,7 +66,7 @@ export default async function DashboardPage() {
     )
   }
 
-  const { completedToday, notices } = await getData(userId)
+  const { user, completedToday, notices } = await getData(userId)
   const goal = 300
 
   return (
@@ -73,7 +74,7 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         {/* Greeting */}
         <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-          <h1 className="text-xl font-semibold">Welcome back</h1>
+          <h1 className="text-xl font-semibold">Welcome back{user?.name ? `, ${user.name}` : ''}</h1>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Here’s your progress for today.</p>
         </div>
 

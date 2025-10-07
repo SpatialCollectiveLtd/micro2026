@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { clsx } from 'clsx'
+import { FiHome, FiCheckSquare, FiMail, FiUser } from 'react-icons/fi'
 
 const tabs = [
-  { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/tasks', label: 'Tasks', icon: '📝' },
-  { href: '/earnings', label: 'Earnings', icon: '💰' },
-  { href: '/profile', label: 'Profile', icon: '👤' },
+  { href: '/dashboard', label: 'Dashboard', icon: FiHome },
+  { href: '/tasks', label: 'Tasks', icon: FiCheckSquare },
+  { href: '/messages', label: 'Messages', icon: FiMail },
+  { href: '/profile', label: 'Profile', icon: FiUser },
 ]
 
 export default function WorkerLayout({ children }) {
@@ -25,7 +26,7 @@ export default function WorkerLayout({ children }) {
                 )}
               >
                 <span className="text-lg" aria-hidden>
-                  {t.icon}
+                  {t.icon && <t.icon />}
                 </span>
                 <span>{t.label}</span>
               </Link>

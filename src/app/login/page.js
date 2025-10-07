@@ -32,10 +32,22 @@ export default function LoginPage() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ phone: phone.trim(), settlementId: settlementId.trim() }),
         redirect: 'manual',
+        credentials: 'same-origin',
       })
       if (res.status === 0 || (res.status >= 300 && res.status < 400)) {
-        // browser will follow redirect automatically if not manual; manual gives us 0 in some environments
-        // Fallback: navigate client-side to dashboard; server also sets cookie
+        // Cookie should be set by server response. Determine role via /api/dashboard and route accordingly.
+        const who = await fetch('/api/dashboard', { credentials: 'same-origin' })
+        if (who.ok) {
+          const info = await who.json().catch(() => null)
+          const role = info?.user?.role
+          if (role === 'ADMIN') {
+            window.location.href = '/admin/campaigns'
+          } else {
+            window.location.href = '/dashboard'
+          }
+          return
+        }
+        // fallback to worker dashboard if role fetch fails
         window.location.href = '/dashboard'
         return
       }
@@ -44,7 +56,14 @@ export default function LoginPage() {
         setError(data?.error || 'Login failed')
         return
       }
-      // If API returns ok without redirect (unlikely now), send to dashboard
+      // If API returns JSON ok (non-redirect), resolve role via /api/dashboard and route
+      const who = await fetch('/api/dashboard', { credentials: 'same-origin' })
+      if (who.ok) {
+        const info = await who.json().catch(() => null)
+        const role = info?.user?.role
+        window.location.href = role === 'ADMIN' ? '/admin/campaigns' : '/dashboard'
+        return
+      }
       window.location.href = '/dashboard'
     } catch (err) {
       setError('Network error. Please try again.')
