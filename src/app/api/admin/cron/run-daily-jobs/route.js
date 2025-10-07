@@ -39,7 +39,11 @@ export async function POST(request) {
   const updates = []
   for (const [imageId, counts] of byImage.entries()) {
     const { truth } = computeConsensus(counts)
-    if (truth !== null) updates.push(prisma.image.update({ where: { id: imageId }, data: { groundTruth: truth } }))
+    if (truth !== null) {
+      updates.push(prisma.image.update({ where: { id: imageId }, data: { groundTruth: truth, status: 'COMPLETE' } }))
+    } else {
+      updates.push(prisma.image.update({ where: { id: imageId }, data: { status: 'FLAGGED' } }))
+    }
   }
   if (updates.length) await prisma.$transaction(updates)
 
@@ -47,19 +51,20 @@ export async function POST(request) {
   const imageTruth = new Map()
   if (byImage.size) {
     const imageIds = Array.from(byImage.keys())
-    const imgs = await prisma.image.findMany({ where: { id: { in: imageIds } }, select: { id: true, groundTruth: true } })
-    for (const i of imgs) imageTruth.set(i.id, i.groundTruth)
+    const imgs = await prisma.image.findMany({ where: { id: { in: imageIds } }, select: { id: true, groundTruth: true, status: true } })
+    for (const i of imgs) imageTruth.set(i.id, { truth: i.groundTruth, status: i.status })
   }
 
   // Payment: compute per user accuracy for today, then pay
   const byUser = new Map()
   for (const r of responses) {
-    const truth = imageTruth.get(r.task.imageId)
+    const imgInfo = imageTruth.get(r.task.imageId) || { truth: null, status: 'PENDING' }
+    const truth = imgInfo.truth
     const u = byUser.get(r.userId) || { total: 0, correct: 0 }
     // Count every response toward total
     u.total++
     // Flagged (no consensus) count as correct for fairness
-    if (truth === null || typeof truth === 'undefined') {
+    if (truth === null || typeof truth === 'undefined' || imgInfo.status === 'FLAGGED') {
       u.correct++
     } else if (r.answer === truth) {
       u.correct++

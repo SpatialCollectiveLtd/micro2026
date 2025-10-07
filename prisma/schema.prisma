@@ -99,12 +99,19 @@ model Image {
   campaignId String?
   campaign  Campaign? @relation(fields: [campaignId], references: [id])
   groundTruth Boolean?
+  status    ImageStatus @default(PENDING)
   active    Boolean  @default(true)
   tasks     Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("images")
+}
+
+enum ImageStatus {
+  PENDING
+  COMPLETE
+  FLAGGED
 }
 
 model Response {

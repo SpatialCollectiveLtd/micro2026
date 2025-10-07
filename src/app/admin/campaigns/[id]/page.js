@@ -3,7 +3,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import CampaignActiveToggle from '@/components/CampaignActiveToggle'
 import CampaignActions from '@/components/CampaignActions'
 import { Table, THead, TH, TR, TD } from '@/components/ui/table'
-import InlineTruthEditor from '@/components/InlineTruthEditor'
 import Button from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -105,9 +104,7 @@ export default async function CampaignDetailPage({ params }) {
                       <span className="truncate max-w-[420px] text-neutral-700 dark:text-neutral-300">{img.url}</span>
                     </div>
                   </TD>
-                  <TD>
-                    <InlineTruthEditor id={img.id} initial={img.groundTruth} />
-                  </TD>
+                  <TD>{img.groundTruth == null ? '—' : (img.groundTruth ? 'Yes' : 'No')}</TD>
                   <TD>{imageResponseCounts[img.id] || 0}</TD>
                 </TR>
               ))}

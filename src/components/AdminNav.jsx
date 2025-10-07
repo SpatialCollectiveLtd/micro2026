@@ -7,6 +7,7 @@ const links = [
   { href: '/admin/campaigns', label: 'Campaigns' },
   { href: '/admin/users', label: 'Users' },
   { href: '/admin/notices', label: 'Notices' },
+  { href: '/admin/flagged', label: 'Flagged Images' },
   { href: '/admin/payments', label: 'Payments' },
 ]
 
