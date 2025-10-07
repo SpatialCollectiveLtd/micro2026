@@ -57,10 +57,21 @@ export async function POST(request) {
   // Create campaign, images, settlement links, and tasks for users in selected settlements
   const campaign = await prisma.campaign.create({ data: { title, question, active: true } })
 
-  // Create images
-  const images = await Promise.all(
-    validUrls.map((url) => prisma.image.create({ data: { url, question, campaignId: campaign.id } }))
-  )
+  // Helper to chunk arrays
+  const chunk = (arr, size) => {
+    const out = []
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+    return out
+  }
+
+  // Create images in moderate concurrency batches to avoid overwhelming DB
+  const images = []
+  for (const group of chunk(validUrls, 200)) {
+    const created = await Promise.all(
+      group.map((url) => prisma.image.create({ data: { url, question, campaignId: campaign.id } }))
+    )
+    images.push(...created)
+  }
 
   // Link settlements
   await Promise.all(
@@ -69,18 +80,22 @@ export async function POST(request) {
 
   // Create tasks for all users in those settlements
   const users = await prisma.user.findMany({ where: { settlementId: { in: selectedSettlements } } })
-  const taskCreates = []
+  // Build task rows
+  const rows = []
   for (const user of users) {
     for (const img of images) {
-      taskCreates.push(prisma.task.create({ data: {
+      rows.push({
         userId: user.id,
         settlementId: user.settlementId,
         imageId: img.id,
         campaignId: campaign.id,
-      } }))
+      })
     }
   }
-  await prisma.$transaction(taskCreates)
+  // Batch insert tasks using createMany in chunks to avoid timeouts
+  for (const group of chunk(rows, 1000)) {
+    await prisma.task.createMany({ data: group })
+  }
 
   return Response.redirect(new URL('/admin/campaigns', request.url))
 }

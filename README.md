@@ -48,3 +48,8 @@ Project scripts
 Notes
 - Do not commit `.env` or secrets.
 - For production, mt_session cookie is Secure + HttpOnly + SameSite=Lax.
+
+Deployment
+- Vercel: Use Vercel Cron Jobs to invoke `POST /api/admin/cron/run-daily-jobs` on your desired schedule. Add a header `x-cron-secret: $CRON_SECRET`.
+- External: You can also trigger the endpoint from GitHub Actions or any scheduler that can send an HTTP POST with the same header.
+- Environment: Ensure `CRON_SECRET` is set in the hosting environment variables. The endpoint also allows ADMIN cookie fallback for manual runs, but header is preferred.

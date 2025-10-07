@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
 import { parseSessionCookie } from '@/lib/session'
+import { computeConsensus } from '@/lib/consensus'
 
 function unauthorized() { return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 }) }
 
@@ -37,17 +38,8 @@ export async function POST(request) {
   }
   const updates = []
   for (const [imageId, counts] of byImage.entries()) {
-    const total = counts.yes + counts.no
-    if (total === 0) continue
-    const yesRatio = counts.yes / total
-    const noRatio = counts.no / total
-    let truth = null
-    if (yesRatio >= 0.7) truth = true
-    else if (noRatio >= 0.7) truth = false
-    // Only update when we reach consensus; otherwise leave groundTruth unchanged
-    if (truth !== null) {
-      updates.push(prisma.image.update({ where: { id: imageId }, data: { groundTruth: truth } }))
-    }
+    const { truth } = computeConsensus(counts)
+    if (truth !== null) updates.push(prisma.image.update({ where: { id: imageId }, data: { groundTruth: truth } }))
   }
   if (updates.length) await prisma.$transaction(updates)
 
