@@ -22,7 +22,7 @@ export async function POST(request) {
   const end = new Date(now)
   end.setHours(23, 59, 59, 999)
 
-  // Consensus: compute majority per image based on today's responses
+  // Consensus: compute grounded truth per image using a >=70% threshold over today's responses
   const responses = await prisma.response.findMany({
     where: { createdAt: { gte: start, lte: end } },
     include: { task: true },
@@ -37,9 +37,17 @@ export async function POST(request) {
   }
   const updates = []
   for (const [imageId, counts] of byImage.entries()) {
-    if (counts.yes + counts.no === 0) continue
-    const truth = counts.yes >= counts.no
-    updates.push(prisma.image.update({ where: { id: imageId }, data: { groundTruth: truth } }))
+    const total = counts.yes + counts.no
+    if (total === 0) continue
+    const yesRatio = counts.yes / total
+    const noRatio = counts.no / total
+    let truth = null
+    if (yesRatio >= 0.7) truth = true
+    else if (noRatio >= 0.7) truth = false
+    // Only update when we reach consensus; otherwise leave groundTruth unchanged
+    if (truth !== null) {
+      updates.push(prisma.image.update({ where: { id: imageId }, data: { groundTruth: truth } }))
+    }
   }
   if (updates.length) await prisma.$transaction(updates)
 

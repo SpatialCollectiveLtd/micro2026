@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { unsealData } from 'iron-session/edge'
+import { parseSessionCookie } from '@/lib/session'
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl
@@ -13,23 +13,15 @@ export async function middleware(request) {
 
   if (!isProtected && !isAdminRoute) return NextResponse.next()
 
-  const token = request.cookies.get('mt_session')?.value
-  if (!token) {
+  const session = await parseSessionCookie(request)
+  if (!session) {
     const loginUrl = new URL('/login', request.url)
     return NextResponse.redirect(loginUrl)
   }
 
   // Parse role for admin routes
   if (isAdminRoute) {
-    let decoded = null
-    // Try iron-session sealed cookie first
-    try {
-      decoded = await unsealData(token, { password: process.env.SESSION_SECRET || 'dev-secret-change-me' })
-    } catch {
-      // Fallback to legacy base64 JSON for existing cookies
-      try { decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf8')) } catch {}
-    }
-    if (!decoded || decoded.role !== 'ADMIN') {
+    if (session.role !== 'ADMIN') {
       const loginUrl = new URL('/login', request.url)
       return NextResponse.redirect(loginUrl)
     }
