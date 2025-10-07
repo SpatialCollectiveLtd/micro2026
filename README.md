@@ -53,3 +53,12 @@ Deployment
 - Vercel: Use Vercel Cron Jobs to invoke `POST /api/admin/cron/run-daily-jobs` on your desired schedule. Add a header `x-cron-secret: $CRON_SECRET`.
 - External: You can also trigger the endpoint from GitHub Actions or any scheduler that can send an HTTP POST with the same header.
 - Environment: Ensure `CRON_SECRET` is set in the hosting environment variables. The endpoint also allows ADMIN cookie fallback for manual runs, but header is preferred.
+
+Database migrations in production
+- Ensure `DATABASE_URL` is set in your hosting provider (e.g., Vercel Project Settings → Environment Variables).
+- Run Prisma generate on install (already wired via `postinstall`).
+- Apply migrations on deploy with either of these approaches:
+   - Add a deploy hook/step to run `npm run migrate:deploy` before `next start`.
+   - Or, trigger `npx prisma migrate deploy` manually from your CI/CD right after build and before starting the app.
+
+Tip: If you’re not using migrations yet, initialize them locally with `npx prisma migrate dev --name init` so production can pick up and apply with `migrate deploy`.
