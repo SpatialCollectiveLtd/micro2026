@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
 import { createSessionCookie } from '@/lib/session'
+import { NextResponse } from 'next/server'
 
 function badRequest(message) {
   return Response.json({ ok: false, error: message }, { status: 400 })
@@ -42,11 +43,11 @@ export async function POST(request) {
       return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const headers = new Headers({ 'content-type': 'application/json' })
-    const cookie = await createSessionCookie({ id: user.id, role: user.role, sid: crypto.randomUUID() })
-    headers.append('set-cookie', cookie)
-
-    return new Response(JSON.stringify({ ok: true }), { status: 200, headers })
+  const cookie = await createSessionCookie({ id: user.id, role: user.role, sid: crypto.randomUUID() })
+  const redirectTo = user.role === 'ADMIN' ? '/admin/campaigns' : '/dashboard'
+  const res = NextResponse.redirect(new URL(redirectTo, request.url), 303)
+  res.headers.append('set-cookie', cookie)
+  return res
   } catch (e) {
     return Response.json({ ok: false, error: 'Server error' }, { status: 500 })
   }
