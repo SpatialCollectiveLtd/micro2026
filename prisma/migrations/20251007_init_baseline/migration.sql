@@ -1,0 +1,2 @@
+-- Baseline migration for existing schema; no-op. Used to baseline the current DB state.
+-- This file intentionally left blank.
