@@ -5,6 +5,7 @@ import Textarea from '@/components/ui/textarea'
 import Checkbox from '@/components/ui/checkbox'
 import Button from '@/components/ui/button'
 import FileUpload from '@/components/ui/file-upload'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +44,7 @@ export default async function NewCampaignPage() {
         </div>
         <div className="flex items-center justify-end gap-2">
           <Button variant="outline" asChild>
-            <a href="/admin/campaigns">Cancel</a>
+            <Link href="/admin/campaigns">Cancel</Link>
           </Button>
           <Button type="submit">Create Campaign</Button>
         </div>

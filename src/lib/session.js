@@ -1,4 +1,4 @@
-import { sealData, unsealData } from 'iron-session/edge'
+import { sealData, unsealData } from 'iron-session'
 
 const password = process.env.SESSION_SECRET || 'dev-secret-change-me'
 const ttl = 60 * 60 * 24 * 7 // 7 days

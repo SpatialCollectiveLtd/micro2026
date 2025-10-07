@@ -92,6 +92,7 @@ export default async function CampaignDetailPage({ params }) {
                 <TR key={img.id}>
                   <TD>
                     <div className="flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={img.url} alt="" className="h-10 w-10 rounded object-cover" />
                       <span className="truncate max-w-[420px] text-neutral-700 dark:text-neutral-300">{img.url}</span>
                     </div>

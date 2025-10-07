@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Input from '@/components/ui/input'
 import { Table, THead, TR, TH, TD } from '@/components/ui/table'
 import Button from '@/components/ui/button'
@@ -14,12 +14,14 @@ export default function UsersPage() {
   const [form, setForm] = useState({ name: '', phone: '', role: 'WORKER', settlementId: '' })
   const [loading, setLoading] = useState(false)
 
-  const loadData = async (params = {}) => {
+  const loadData = useCallback(async (params = {}) => {
     const q = new URLSearchParams(params).toString()
     const res = await fetch(`/api/admin/users?${q}`)
     const data = await res.json()
     if (data.ok) { setUsers(data.users); setTotal(data.total) }
-  }
+  }, [])
+  // initial load only; subsequent fetches are triggered by onFilter/pagination actions
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(filters) }, [])
   useEffect(() => {
     const fn = async () => {

@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import { Table, THead, TR, TH, TD } from '@/components/ui/table'
 import Button from '@/components/ui/button'
 import Badge from '@/components/ui/badge'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export default async function CampaignsPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Campaigns</h1>
         <Button asChild>
-          <a href="/admin/campaigns/new">Create New Campaign</a>
+          <Link href="/admin/campaigns/new">Create New Campaign</Link>
         </Button>
       </div>
 
@@ -38,7 +39,7 @@ export default async function CampaignsPage() {
           {campaigns.map((c) => (
             <TR key={c.id}>
               <TD className="font-medium text-neutral-800 dark:text-neutral-200">
-                <a href={`/admin/campaigns/${c.id}`} className="block w-full hover:underline">{c.title}</a>
+                <Link href={`/admin/campaigns/${c.id}`} className="block w-full hover:underline">{c.title}</Link>
               </TD>
               <TD>
                 <Badge className={c.active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : ''}>
