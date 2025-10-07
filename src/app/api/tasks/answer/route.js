@@ -1,16 +1,9 @@
 import prisma from '@/lib/prisma'
+import { parseSessionCookie } from '@/lib/session'
 
 export async function POST(request) {
-  const sessionCookie = request.cookies.get('mt_session')?.value
-  if (!sessionCookie) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
-
-  let userId
-  try {
-    const decoded = JSON.parse(Buffer.from(sessionCookie, 'base64').toString('utf8'))
-    userId = decoded.id
-  } catch (e) {
-    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
-  }
+  const session = await parseSessionCookie(request)
+  if (!session?.id) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
 
   let body
   try {
@@ -26,12 +19,12 @@ export async function POST(request) {
 
   // Ensure task belongs to user
   const task = await prisma.task.findUnique({ where: { id: taskId }, include: { image: true } })
-  if (!task || task.userId !== userId) {
+  if (!task || task.userId !== session.id) {
     return Response.json({ ok: false, error: 'Not found' }, { status: 404 })
   }
 
   await prisma.$transaction([
-    prisma.response.create({ data: { userId, taskId, answer } }),
+    prisma.response.create({ data: { userId: session.id, taskId, answer } }),
     prisma.task.update({ where: { id: taskId }, data: { completed: true } }),
   ])
 

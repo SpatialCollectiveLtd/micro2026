@@ -1,15 +1,7 @@
 import prisma from '@/lib/prisma'
+import { requireAdmin } from '@/lib/session'
 
 function unauthorized() { return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 }) }
-function requireAdmin(request) {
-  const session = request.cookies.get('mt_session')?.value
-  if (!session) return null
-  try {
-    const decoded = JSON.parse(Buffer.from(session, 'base64').toString('utf8'))
-    if (decoded.role !== 'ADMIN') return null
-    return decoded
-  } catch { return null }
-}
 
 function parseDate(value) {
   const d = new Date(value)
@@ -17,7 +9,7 @@ function parseDate(value) {
 }
 
 export async function GET(request) {
-  const decoded = requireAdmin(request)
+  const decoded = await requireAdmin(request)
   if (!decoded) return unauthorized()
   const { searchParams } = new URL(request.url)
   const from = parseDate(searchParams.get('from'))

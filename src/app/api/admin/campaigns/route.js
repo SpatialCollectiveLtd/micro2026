@@ -1,19 +1,10 @@
 import prisma from '@/lib/prisma'
+import { requireAdmin } from '@/lib/session'
 
 function unauthorized() { return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 }) }
 
-function requireAdmin(request) {
-  const session = request.cookies.get('mt_session')?.value
-  if (!session) return null
-  try {
-    const decoded = JSON.parse(Buffer.from(session, 'base64').toString('utf8'))
-    if (decoded.role !== 'ADMIN') return null
-    return decoded
-  } catch { return null }
-}
-
 export async function GET(request) {
-  const decoded = requireAdmin(request)
+  const decoded = await requireAdmin(request)
   if (!decoded) return unauthorized()
 
   const campaigns = await prisma.campaign.findMany({ include: { images: true }, orderBy: { createdAt: 'desc' } })
@@ -21,7 +12,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const decoded = requireAdmin(request)
+  const decoded = await requireAdmin(request)
   if (!decoded) return unauthorized()
 
   const form = await request.formData()
@@ -34,11 +25,33 @@ export async function POST(request) {
     return Response.json({ ok: false, error: 'Missing required fields' }, { status: 400 })
   }
 
-  // Parse CSV (one URL per line)
+  // Parse CSV (one URL per line) with validation and caps
   const text = await file.text()
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  let lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
   if (lines.length === 0) {
     return Response.json({ ok: false, error: 'CSV is empty' }, { status: 400 })
+  }
+  const MAX_LINES = 10000
+  if (lines.length > MAX_LINES) {
+    return Response.json({ ok: false, error: `CSV too large. Max ${MAX_LINES} URLs per upload.` }, { status: 400 })
+  }
+  // Validate URLs and dedupe
+  const urlSet = new Set()
+  const validUrls = []
+  for (const raw of lines) {
+    try {
+      const u = new URL(raw)
+      const normalized = u.toString()
+      if (!urlSet.has(normalized)) {
+        urlSet.add(normalized)
+        validUrls.push(normalized)
+      }
+    } catch {
+      // skip invalid URL
+    }
+  }
+  if (validUrls.length === 0) {
+    return Response.json({ ok: false, error: 'No valid URLs found in CSV' }, { status: 400 })
   }
 
   // Create campaign, images, settlement links, and tasks for users in selected settlements
@@ -46,7 +59,7 @@ export async function POST(request) {
 
   // Create images
   const images = await Promise.all(
-    lines.map((url) => prisma.image.create({ data: { url, question, campaignId: campaign.id } }))
+    validUrls.map((url) => prisma.image.create({ data: { url, question, campaignId: campaign.id } }))
   )
 
   // Link settlements

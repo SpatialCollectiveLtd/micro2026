@@ -1,19 +1,12 @@
 import prisma from '@/lib/prisma'
+import { parseSessionCookie } from '@/lib/session'
 
 export async function GET(request) {
-  const sessionCookie = request.cookies.get('mt_session')?.value
-  if (!sessionCookie) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
-
-  let userId
-  try {
-    const decoded = JSON.parse(Buffer.from(sessionCookie, 'base64').toString('utf8'))
-    userId = decoded.id
-  } catch (e) {
-    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
-  }
+  const session = await parseSessionCookie(request)
+  if (!session?.id) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
 
   const task = await prisma.task.findFirst({
-    where: { userId, completed: false, image: { active: true } },
+    where: { userId: session.id, completed: false, image: { active: true } },
     orderBy: { createdAt: 'asc' },
     include: { image: true },
   })

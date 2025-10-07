@@ -1,18 +1,10 @@
 import prisma from '@/lib/prisma'
+import { requireAdmin } from '@/lib/session'
 
 function unauthorized() { return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 }) }
-function requireAdmin(request) {
-  const session = request.cookies.get('mt_session')?.value
-  if (!session) return null
-  try {
-    const decoded = JSON.parse(Buffer.from(session, 'base64').toString('utf8'))
-    if (decoded.role !== 'ADMIN') return null
-    return decoded
-  } catch { return null }
-}
 
 export async function GET(request) {
-  const decoded = requireAdmin(request)
+  const decoded = await requireAdmin(request)
   if (!decoded) return unauthorized()
   const { searchParams } = new URL(request.url)
     const phone = searchParams.get('phone') || undefined
@@ -40,7 +32,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const decoded = requireAdmin(request)
+  const decoded = await requireAdmin(request)
   if (!decoded) return unauthorized()
   const body = await request.json().catch(() => null)
   if (!body) return Response.json({ ok: false, error: 'Invalid JSON' }, { status: 400 })

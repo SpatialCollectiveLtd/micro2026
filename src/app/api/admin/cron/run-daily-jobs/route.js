@@ -1,22 +1,19 @@
 import prisma from '@/lib/prisma'
+import { parseSessionCookie } from '@/lib/session'
 
 function unauthorized() { return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 }) }
 
-function isAuthorized(request) {
+async function isAuthorized(request) {
   const secret = process.env.CRON_SECRET
   const header = request.headers.get('x-cron-secret')
   if (secret && header && header === secret) return true
   // Allow admin cookie as a fallback manual trigger by super-admins
-  const session = request.cookies.get('mt_session')?.value
-  if (!session) return false
-  try {
-    const decoded = JSON.parse(Buffer.from(session, 'base64').toString('utf8'))
-    return decoded.role === 'ADMIN'
-  } catch { return false }
+  const decoded = await parseSessionCookie(request)
+  return decoded?.role === 'ADMIN'
 }
 
 export async function POST(request) {
-  if (!isAuthorized(request)) return unauthorized()
+  if (!(await isAuthorized(request))) return unauthorized()
 
   // Define the window: yesterday 18:00 to today 18:00 or simply "today"
   const now = new Date()
@@ -66,20 +63,19 @@ export async function POST(request) {
   }
 
   const baseRate = Number(process.env.PAY_PER_TASK || '0')
-  const bonusRates = {
-    // Simple tiering: >=90% +50% bonus, >=75% +20% bonus, else 0%
-    high: 0.5,
-    mid: 0.2,
-    low: 0,
-  }
+  // Payment bonus tiers per spec:
+  // 90%+ => 30%, 80-89% => 20%, 70-79% => 10%, else 0%
 
   const reportJobs = []
   for (const [userId, stats] of byUser.entries()) {
     if (stats.total === 0) continue
     const accuracy = stats.correct / stats.total
-    const basePay = +(stats.total * baseRate).toFixed(2)
-    const tier = accuracy >= 0.9 ? 'high' : accuracy >= 0.75 ? 'mid' : 'low'
-    const bonusPay = +(basePay * bonusRates[tier]).toFixed(2)
+  const basePay = +(stats.total * baseRate).toFixed(2)
+  let bonusPct = 0
+  if (accuracy >= 0.9) bonusPct = 0.3
+  else if (accuracy >= 0.8) bonusPct = 0.2
+  else if (accuracy >= 0.7) bonusPct = 0.1
+  const bonusPay = +(basePay * bonusPct).toFixed(2)
     const totalPay = +(basePay + bonusPay).toFixed(2)
 
     // Upsert DailyReport by user+date

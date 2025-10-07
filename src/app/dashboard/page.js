@@ -1,5 +1,7 @@
 import WorkerLayout from '@/app/(worker)/layout'
 import prisma from '@/lib/prisma'
+import { cookies as readCookies } from 'next/headers'
+import { unsealSessionToken } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,15 +46,13 @@ function ProgressRing({ current = 0, goal = 300 }) {
   )
 }
 
-export default async function DashboardPage({ cookies }) {
-  // Parse session cookie (lightweight)
-  const sessionCookie = cookies().get('mt_session')?.value
+export default async function DashboardPage() {
+  // Parse sealed session cookie using iron-session
+  const sessionCookie = readCookies().get('mt_session')?.value
   let userId = null
   if (sessionCookie) {
-    try {
-      const decoded = JSON.parse(Buffer.from(sessionCookie, 'base64').toString('utf8'))
-      userId = decoded.id
-    } catch {}
+    const decoded = await unsealSessionToken(sessionCookie)
+    userId = decoded?.id || null
   }
 
   // Fallback: redirect handled by middleware; here just guard UI
