@@ -4,8 +4,8 @@ import { parseSessionCookie } from '@/lib/session'
 export async function middleware(request) {
   const { pathname } = request.nextUrl
 
-  // Protect all routes under /dashboard, /tasks, /earnings, /profile
-  const protectedPrefixes = ['/dashboard', '/tasks', '/earnings', '/profile']
+  // Protect all routes under /dashboard, /tasks, /profile
+  const protectedPrefixes = ['/dashboard', '/tasks', '/profile']
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
 
   // Admin routes require ADMIN role
@@ -31,5 +31,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/tasks/:path*', '/earnings/:path*', '/profile/:path*', '/admin/:path*'],
+  matcher: ['/dashboard/:path*', '/tasks/:path*', '/profile/:path*', '/admin/:path*'],
 }

@@ -43,9 +43,9 @@ export async function POST(request) {
   }
   if (updates.length) await prisma.$transaction(updates)
 
-  // Re-load ground truths for involved images
+  // Load ground truths for all involved images (including ones not updated today)
   const imageTruth = new Map()
-  if (updates.length) {
+  if (byImage.size) {
     const imageIds = Array.from(byImage.keys())
     const imgs = await prisma.image.findMany({ where: { id: { in: imageIds } }, select: { id: true, groundTruth: true } })
     for (const i of imgs) imageTruth.set(i.id, i.groundTruth)
@@ -55,14 +55,21 @@ export async function POST(request) {
   const byUser = new Map()
   for (const r of responses) {
     const truth = imageTruth.get(r.task.imageId)
-    if (typeof truth === 'undefined' || truth === null) continue
     const u = byUser.get(r.userId) || { total: 0, correct: 0 }
+    // Count every response toward total
     u.total++
-    if (r.answer === truth) u.correct++
+    // Flagged (no consensus) count as correct for fairness
+    if (truth === null || typeof truth === 'undefined') {
+      u.correct++
+    } else if (r.answer === truth) {
+      u.correct++
+    }
     byUser.set(r.userId, u)
   }
 
-  const baseRate = Number(process.env.PAY_PER_TASK || '0')
+  // Base pay is fixed if worker meets daily target, otherwise 0
+  const DAILY_TARGET = Number(process.env.DAILY_TARGET || '300')
+  const BASE_PAY = Number(process.env.BASE_PAY || '760')
   // Payment bonus tiers per spec:
   // 90%+ => 30%, 80-89% => 20%, 70-79% => 10%, else 0%
 
@@ -70,12 +77,12 @@ export async function POST(request) {
   for (const [userId, stats] of byUser.entries()) {
     if (stats.total === 0) continue
     const accuracy = stats.correct / stats.total
-  const basePay = +(stats.total * baseRate).toFixed(2)
-  let bonusPct = 0
-  if (accuracy >= 0.9) bonusPct = 0.3
-  else if (accuracy >= 0.8) bonusPct = 0.2
-  else if (accuracy >= 0.7) bonusPct = 0.1
-  const bonusPay = +(basePay * bonusPct).toFixed(2)
+    const basePay = stats.total >= DAILY_TARGET ? BASE_PAY : 0
+    let bonusPct = 0
+    if (accuracy >= 0.9) bonusPct = 0.3
+    else if (accuracy >= 0.8) bonusPct = 0.2
+    else if (accuracy >= 0.7) bonusPct = 0.1
+    const bonusPay = +(basePay * bonusPct).toFixed(2)
     const totalPay = +(basePay + bonusPay).toFixed(2)
 
     // Upsert DailyReport by user+date
