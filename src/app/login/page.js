@@ -147,20 +147,16 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 w-full max-w-3xl text-center">
+        <div className="mt-8 w-full max-w-4xl text-center">
           <div className="text-sm text-neutral-300">Digital Public Works for Urban Resilience.</div>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-5 opacity-90">
-            {[
-              { src: '/logos/World Bank.jpg', alt: 'World Bank', w: 80, h: 30 },
-              { src: '/logos/EU Logo.jpg', alt: 'EU', w: 60, h: 40 },
-              { src: '/logos/GoK Coat of Arms.png', alt: 'Govt of Kenya', w: 40, h: 40 },
-              { src: '/logos/KISIP-LOGO.png', alt: 'KISIP', w: 70, h: 30 },
-              { src: '/logos/AFD logo.png', alt: 'AFD', w: 60, h: 30 },
-            ].map((l) => (
-              <div key={l.src} className="rounded-xl border border-white/10 bg-white/20 p-2 backdrop-blur-md">
-                <Image src={l.src} alt={l.alt} width={l.w} height={l.h} className="object-contain" />
-              </div>
-            ))}
+          <div className="mx-auto mt-4 max-w-4xl rounded-2xl border border-white/20 bg-white/75 p-4 shadow-[0_10px_50px_-10px_rgba(0,0,0,0.4)] backdrop-blur-md">
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <Image src="/logos/World Bank.jpg" alt="World Bank" width={110} height={40} className="object-contain" />
+              <Image src="/logos/EU Logo.jpg" alt="EU" width={80} height={50} className="object-contain" />
+              <Image src="/logos/GoK Coat of Arms.png" alt="Govt of Kenya" width={60} height={60} className="object-contain" />
+              <Image src="/logos/KISIP-LOGO.png" alt="KISIP" width={100} height={40} className="object-contain" />
+              <Image src="/logos/AFD logo.png" alt="AFD" width={90} height={40} className="object-contain" />
+            </div>
           </div>
         </div>
       </div>

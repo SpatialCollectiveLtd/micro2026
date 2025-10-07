@@ -16,6 +16,7 @@
     "db:seed": "prisma db seed",
     "cron:start": "node scripts/cron-runner.js",
     "db:ensure:image-status": "node scripts/db-ensure-image-status.js",
+  "db:ensure:activity": "node scripts/db-ensure-activity-and-timing.js",
     "repo:update": "node scripts/auto-commit.js"
   },
   "prisma": {
