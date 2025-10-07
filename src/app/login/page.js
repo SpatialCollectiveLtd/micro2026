@@ -150,12 +150,17 @@ export default function LoginPage() {
         <div className="mt-8 w-full max-w-3xl text-center">
           <div className="text-sm text-neutral-300">Digital Public Works for Urban Resilience.</div>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-5 opacity-90">
-            <Image src="/logos/spatial logo.jpg" alt="Spatial Collective" width={36} height={36} className="rounded object-cover" />
-            <Image src="/logos/World Bank.jpg" alt="World Bank" width={80} height={30} className="object-contain" />
-            <Image src="/logos/EU Logo.jpg" alt="EU" width={60} height={40} className="object-contain" />
-            <Image src="/logos/GoK Coat of Arms.png" alt="Govt of Kenya" width={40} height={40} className="object-contain" />
-            <Image src="/logos/KISIP-LOGO.png" alt="KISIP" width={70} height={30} className="object-contain" />
-            <Image src="/logos/AFD logo.png" alt="AFD" width={60} height={30} className="object-contain" />
+            {[
+              { src: '/logos/World Bank.jpg', alt: 'World Bank', w: 80, h: 30 },
+              { src: '/logos/EU Logo.jpg', alt: 'EU', w: 60, h: 40 },
+              { src: '/logos/GoK Coat of Arms.png', alt: 'Govt of Kenya', w: 40, h: 40 },
+              { src: '/logos/KISIP-LOGO.png', alt: 'KISIP', w: 70, h: 30 },
+              { src: '/logos/AFD logo.png', alt: 'AFD', w: 60, h: 30 },
+            ].map((l) => (
+              <div key={l.src} className="rounded-xl border border-white/10 bg-white/20 p-2 backdrop-blur-md">
+                <Image src={l.src} alt={l.alt} width={l.w} height={l.h} className="object-contain" />
+              </div>
+            ))}
           </div>
         </div>
       </div>

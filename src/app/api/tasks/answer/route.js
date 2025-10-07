@@ -23,9 +23,14 @@ export async function POST(request) {
     return Response.json({ ok: false, error: 'Not found' }, { status: 404 })
   }
 
+  const now = new Date()
+  const servedAt = task.servedAt || now
+  const durationSeconds = Math.max(0, Math.round((now.getTime() - new Date(servedAt).getTime()) / 1000))
+
   await prisma.$transaction([
     prisma.response.create({ data: { userId: session.id, taskId, answer } }),
-    prisma.task.update({ where: { id: taskId }, data: { completed: true } }),
+    prisma.task.update({ where: { id: taskId }, data: { completed: true, answeredAt: now, durationSeconds } }),
+    prisma.activityLog.create({ data: { userId: session.id, type: 'SUBMIT', meta: JSON.stringify({ taskId, durationSeconds }) } }),
   ])
 
   return Response.json({ ok: true })

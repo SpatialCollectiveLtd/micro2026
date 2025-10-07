@@ -23,11 +23,13 @@ export async function GET(request) {
   const totalPaid = reports.reduce((s, r) => s + r.totalPay, 0)
 
   if (format === 'csv') {
-    const header = ['date','userPhone','role','totalTasks','correct','accuracy','basePay','bonusPay','totalPay']
+    // Per request: include userId, number of tasks, daily consensus score (accuracy), and calculated payment
+    const header = ['date','userId','userPhone','role','totalTasks','correct','accuracy','basePay','bonusPay','totalPay','avgDurationSeconds','fastAnswers']
     const lines = [header.join(',')]
     for (const r of reports) {
       lines.push([
         r.date.toISOString().slice(0,10),
+        r.userId,
         r.user?.phone || '',
         r.user?.role || '',
         r.totalTasks,
@@ -36,6 +38,8 @@ export async function GET(request) {
         r.basePay.toFixed(2),
         r.bonusPay.toFixed(2),
         r.totalPay.toFixed(2),
+        (r.avgDurationSeconds ?? 0).toFixed(2),
+        r.fastAnswers ?? 0,
       ].map(v => `"${(v ?? '').toString().replace(/"/g,'""')}"`).join(','))
     }
     const csv = lines.join('\n')

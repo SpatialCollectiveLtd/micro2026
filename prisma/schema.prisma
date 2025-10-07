@@ -84,6 +84,9 @@ model Task {
   campaign     Campaign? @relation(fields: [campaignId], references: [id])
   responses    Response[]
   completed    Boolean   @default(false)
+  servedAt     DateTime?
+  answeredAt   DateTime?
+  durationSeconds Int?   @db.Int
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -139,12 +142,25 @@ model DailyReport {
   basePay    Float    @default(0)
   bonusPay   Float    @default(0)
   totalPay   Float    @default(0)
+  avgDurationSeconds Float @default(0)
+  fastAnswers Int @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@index([userId, date])
   @@unique([userId, date], name: "userId_date")
   @@map("daily_reports")
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  meta      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("activity_logs")
 }
 
 model Campaign {

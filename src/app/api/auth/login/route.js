@@ -44,6 +44,7 @@ export async function POST(request) {
     }
 
   const cookie = await createSessionCookie({ id: user.id, role: user.role, sid: crypto.randomUUID() })
+  try { await prisma.activityLog.create({ data: { userId: user.id, type: 'LOGIN' } }) } catch {}
   const redirectTo = user.role === 'ADMIN' ? '/admin/campaigns' : '/dashboard'
   const res = NextResponse.redirect(new URL(redirectTo, request.url), 303)
   res.headers.append('set-cookie', cookie)

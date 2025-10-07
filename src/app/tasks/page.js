@@ -78,7 +78,18 @@ export default function TasksPage() {
             <div className="h-[40vh] w-full overflow-x-auto rounded-lg bg-black">
               {/* Focused: show a flattened panoramic strip */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={task.image.url} alt="panorama" className="h-full w-auto select-none" />
+              <img
+                src={task.image.url}
+                alt="panorama"
+                className="h-full w-auto select-none"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                  const holder = document.createElement('div')
+                  holder.className = 'flex h-full w-full items-center justify-center text-sm text-red-300'
+                  holder.textContent = 'The panorama cannot be loaded'
+                  e.currentTarget.parentElement?.appendChild(holder)
+                }}
+              />
             </div>
           )}
 

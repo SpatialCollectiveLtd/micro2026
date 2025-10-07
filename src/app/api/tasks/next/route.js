@@ -13,5 +13,10 @@ export async function GET(request) {
 
   if (!task) return Response.json({ ok: true, task: null })
 
+  // mark served time if not yet set
+  if (!task.servedAt) {
+    await prisma.task.update({ where: { id: task.id }, data: { servedAt: new Date() } })
+  }
+
   return Response.json({ ok: true, task })
 }

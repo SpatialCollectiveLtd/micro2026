@@ -60,7 +60,7 @@ export async function POST(request) {
   for (const r of responses) {
     const imgInfo = imageTruth.get(r.task.imageId) || { truth: null, status: 'PENDING' }
     const truth = imgInfo.truth
-    const u = byUser.get(r.userId) || { total: 0, correct: 0 }
+  const u = byUser.get(r.userId) || { total: 0, correct: 0, durations: [] }
     // Count every response toward total
     u.total++
     // Flagged (no consensus) count as correct for fairness
@@ -69,6 +69,17 @@ export async function POST(request) {
     } else if (r.answer === truth) {
       u.correct++
     }
+    // duration per task
+    try {
+      const t = r.task
+      if (t?.answeredAt && t?.servedAt) {
+        const d = Math.max(0, Math.round((new Date(t.answeredAt).getTime() - new Date(t.servedAt).getTime()) / 1000))
+        if (!Number.isNaN(d)) u.durations.push(d)
+      } else if (t?.durationSeconds != null) {
+        const d = Number(t.durationSeconds)
+        if (!Number.isNaN(d)) u.durations.push(d)
+      }
+    } catch {}
     byUser.set(r.userId, u)
   }
 
@@ -79,6 +90,7 @@ export async function POST(request) {
   // 90%+ => 30%, 80-89% => 20%, 70-79% => 10%, else 0%
 
   const reportJobs = []
+  const MIN_SECONDS = Number(process.env.MIN_SECONDS || '10')
   for (const [userId, stats] of byUser.entries()) {
     if (stats.total === 0) continue
     const accuracy = stats.correct / stats.total
@@ -90,13 +102,17 @@ export async function POST(request) {
     const bonusPay = +(basePay * bonusPct).toFixed(2)
     const totalPay = +(basePay + bonusPay).toFixed(2)
 
+    // timings
+    const avgDuration = stats.durations.length ? (stats.durations.reduce((a,b)=>a+b,0) / stats.durations.length) : 0
+    const fastAnswers = stats.durations.filter((d) => d > 0 && d < MIN_SECONDS).length
+
     // Upsert DailyReport by user+date
     const dateOnly = new Date(start)
     reportJobs.push(
       prisma.dailyReport.upsert({
         where: { userId_date: { userId, date: dateOnly } },
-        update: { totalTasks: stats.total, correct: stats.correct, accuracy, basePay, bonusPay, totalPay },
-        create: { userId, date: dateOnly, totalTasks: stats.total, correct: stats.correct, accuracy, basePay, bonusPay, totalPay },
+        update: { totalTasks: stats.total, correct: stats.correct, accuracy, basePay, bonusPay, totalPay, avgDurationSeconds: avgDuration, fastAnswers },
+        create: { userId, date: dateOnly, totalTasks: stats.total, correct: stats.correct, accuracy, basePay, bonusPay, totalPay, avgDurationSeconds: avgDuration, fastAnswers },
       })
     )
   }
