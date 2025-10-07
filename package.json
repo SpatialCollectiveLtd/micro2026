@@ -14,7 +14,8 @@
     "prisma:migrate": "prisma migrate dev",
     "db:test": "node scripts/test-db.js",
     "db:seed": "prisma db seed",
-    "cron:start": "node scripts/cron-runner.js"
+    "cron:start": "node scripts/cron-runner.js",
+    "repo:update": "node scripts/auto-commit.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
