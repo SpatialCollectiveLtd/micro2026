@@ -13,6 +13,7 @@ export default function UsersPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', role: 'WORKER', settlementId: '' })
   const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState({ type: '', text: '' })
 
   const loadData = useCallback(async (params = {}) => {
     const q = new URLSearchParams(params).toString()
@@ -25,7 +26,7 @@ export default function UsersPage() {
   useEffect(() => { loadData(filters) }, [])
   useEffect(() => {
     const fn = async () => {
-      const res = await fetch('/api/admin/settlements')
+      const res = await fetch('/api/settlements')
       const data = await res.json()
       if (data.ok) setSettlements(data.settlements)
     }
@@ -39,15 +40,18 @@ export default function UsersPage() {
 
   const createUser = async (e) => {
     e.preventDefault()
-    if (!form.phone) return
+    setMsg({ type: '', text: '' })
+    if (!form.phone) { setMsg({ type: 'error', text: 'Phone is required' }); return }
     setLoading(true)
     try {
       const res = await fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, settlementId: form.settlementId || null }) })
       const data = await res.json()
-      if (data.ok) {
+      if (res.ok && data.ok) {
         setShowCreate(false)
         setForm({ name: '', phone: '', role: 'WORKER', settlementId: '' })
         await loadData(filters)
+      } else {
+        setMsg({ type: 'error', text: data?.error || 'Create failed' })
       }
     } finally { setLoading(false) }
   }
@@ -133,7 +137,10 @@ export default function UsersPage() {
             <div className="mb-3 text-lg font-semibold">Create User</div>
             <form onSubmit={createUser} className="space-y-3">
               <Input placeholder="Name (optional)" value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} />
-              <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} required />
+              <div>
+                <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} required />
+                {!form.phone && <div className="mt-1 text-xs text-red-600">Phone is required</div>}
+              </div>
               <select className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={form.role} onChange={(e) => setForm(f => ({ ...f, role: e.target.value }))}>
                 {roles.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
@@ -142,9 +149,14 @@ export default function UsersPage() {
                 {settlements.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               <div className="flex items-center gap-2 text-sm"><Checkbox checked={true} readOnly /> Active by default</div>
+              {msg.text && (
+                <div className={msg.type === 'error' ? 'rounded-md border border-red-400/30 bg-red-500/10 p-2 text-sm text-red-700' : 'rounded-md border border-green-400/30 bg-green-500/10 p-2 text-sm text-green-700'}>
+                  {msg.text}
+                </div>
+              )}
               <div className="flex justify-end gap-2">
                 <Button variant="outline" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
-                <Button type="submit" disabled={loading}>{loading ? 'Creating…' : 'Create'}</Button>
+                <Button type="submit" disabled={loading || !form.phone}>{loading ? 'Creating…' : 'Create'}</Button>
               </div>
             </form>
           </div>

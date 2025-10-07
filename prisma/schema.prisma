@@ -142,6 +142,7 @@ model Campaign {
   title     String
   question  String
   active    Boolean  @default(true)
+  archived  Boolean  @default(false)
   images    Image[]
   tasks     Task[]
   settlements CampaignSettlement[]

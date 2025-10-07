@@ -6,7 +6,7 @@ export async function GET(request) {
   if (!session?.id) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
 
   const task = await prisma.task.findFirst({
-    where: { userId: session.id, completed: false, image: { active: true } },
+    where: { userId: session.id, completed: false, image: { active: true, campaign: { archived: false } } },
     orderBy: { createdAt: 'asc' },
     include: { image: true },
   })

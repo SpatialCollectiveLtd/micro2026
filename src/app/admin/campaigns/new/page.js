@@ -1,5 +1,4 @@
 "use client"
-import prisma from '@/lib/prisma'
 import Label from '@/components/ui/label'
 import Input from '@/components/ui/input'
 import Textarea from '@/components/ui/textarea'
@@ -10,10 +9,6 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 
 export const dynamic = 'force-dynamic'
-
-async function getSettlements() {
-  return prisma.settlement.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } })
-}
 
 export default function NewCampaignPage() {
   const [settlements, setSettlements] = useState([])
@@ -26,7 +21,7 @@ export default function NewCampaignPage() {
 
   useEffect(() => {
     ;(async () => {
-      const res = await fetch('/api/admin/settlements')
+      const res = await fetch('/api/settlements')
       const data = await res.json().catch(() => ({ ok: false }))
       if (data?.ok) setSettlements(data.settlements)
     })()

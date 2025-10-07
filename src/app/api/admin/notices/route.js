@@ -28,5 +28,5 @@ export async function POST(request) {
       selectedSettlements.map(sid => prisma.noticeSettlement.create({ data: { noticeId: notice.id, settlementId: sid } }))
     )
   }
-  return Response.redirect(new URL('/admin/notices', request.url))
+  return Response.json({ ok: true, noticeId: notice.id, message: 'Notice created successfully' })
 }

@@ -41,9 +41,32 @@ export async function PATCH(request, { params }) {
   if (!decoded) return unauthorized()
   const id = params.id
   const body = await request.json().catch(() => ({}))
-  if (typeof body.active !== 'boolean') {
-    return Response.json({ ok: false, error: 'active boolean required' }, { status: 400 })
+  const data = {}
+  if (typeof body.active === 'boolean') data.active = body.active
+  if (typeof body.archived === 'boolean') data.archived = body.archived
+  if (typeof body.title === 'string') {
+    const t = body.title.trim(); if (!t) return Response.json({ ok: false, error: 'Title cannot be empty' }, { status: 400 }); data.title = t
   }
-  const updated = await prisma.campaign.update({ where: { id }, data: { active: body.active } })
+  if (typeof body.question === 'string') {
+    const q = body.question.trim(); if (!q) return Response.json({ ok: false, error: 'Question cannot be empty' }, { status: 400 }); data.question = q
+  }
+  if (Object.keys(data).length === 0) return Response.json({ ok: false, error: 'No valid fields to update' }, { status: 400 })
+  const updated = await prisma.campaign.update({ where: { id }, data })
   return Response.json({ ok: true, campaign: updated })
+}
+
+export async function DELETE(request, { params }) {
+  const decoded = await requireAdmin(request)
+  if (!decoded) return unauthorized()
+  const id = params.id
+  // Hard delete: remove responses -> tasks -> images (if exclusively linked) -> campaign
+  // Delete responses for tasks in this campaign
+  const tasks = await prisma.task.findMany({ where: { campaignId: id }, select: { id: true } })
+  const taskIds = tasks.map(t => t.id)
+  await prisma.response.deleteMany({ where: { taskId: { in: taskIds } } })
+  await prisma.task.deleteMany({ where: { campaignId: id } })
+  await prisma.campaignSettlement.deleteMany({ where: { campaignId: id } })
+  await prisma.image.deleteMany({ where: { campaignId: id } })
+  await prisma.campaign.delete({ where: { id } })
+  return Response.json({ ok: true })
 }

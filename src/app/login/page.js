@@ -1,21 +1,8 @@
 "use client"
-import prisma from '@/lib/prisma'
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 
 export const dynamic = 'force-dynamic'
-
-async function getSettlements() {
-  try {
-    const settlements = await prisma.settlement.findMany({
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    })
-    return settlements
-  } catch (e) {
-    return []
-  }
-}
 
 export default function LoginPage() {
   const [settlements, setSettlements] = useState([])
@@ -26,7 +13,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     ;(async () => {
-      const res = await fetch('/api/admin/settlements')
+      const res = await fetch('/api/settlements')
       const data = await res.json().catch(() => ({ ok: false }))
       if (data?.ok) setSettlements(data.settlements)
     })()

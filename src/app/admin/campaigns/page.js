@@ -6,16 +6,19 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-async function getData() {
+async function getData(showArchived = false) {
+  const where = showArchived ? {} : { archived: false }
   const campaigns = await prisma.campaign.findMany({
+    where,
     include: { images: true },
     orderBy: { createdAt: 'desc' },
   })
   return campaigns
 }
 
-export default async function CampaignsPage() {
-  const campaigns = await getData()
+export default async function CampaignsPage({ searchParams }) {
+  const showArchived = searchParams?.archived === '1'
+  const campaigns = await getData(showArchived)
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -24,6 +27,14 @@ export default async function CampaignsPage() {
         <Button asChild>
           <Link href="/admin/campaigns/new">Create New Campaign</Link>
         </Button>
+      </div>
+
+      <div className="mb-3 text-sm text-neutral-600 dark:text-neutral-300">
+        {showArchived ? (
+          <span>Showing archived campaigns • <Link className="underline" href="/admin/campaigns">Show active</Link></span>
+        ) : (
+          <span>Showing active campaigns • <Link className="underline" href="/admin/campaigns?archived=1">View archived</Link></span>
+        )}
       </div>
 
       <Table>
