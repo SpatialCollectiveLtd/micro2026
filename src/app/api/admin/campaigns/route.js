@@ -38,6 +38,7 @@ export async function POST(request) {
   // Validate URLs and dedupe
   const urlSet = new Set()
   const validUrls = []
+  let invalidCount = 0
   for (const raw of lines) {
     try {
       const u = new URL(raw)
@@ -47,7 +48,7 @@ export async function POST(request) {
         validUrls.push(normalized)
       }
     } catch {
-      // skip invalid URL
+      invalidCount++
     }
   }
   if (validUrls.length === 0) {
@@ -97,5 +98,6 @@ export async function POST(request) {
     await prisma.task.createMany({ data: group })
   }
 
-  return Response.redirect(new URL('/admin/campaigns', request.url))
+  const message = `Campaign created with ${images.length} valid images.${invalidCount ? ` ${invalidCount} invalid URL(s) were skipped.` : ''}`
+  return Response.json({ ok: true, campaignId: campaign.id, images: images.length, invalid: invalidCount, message })
 }
