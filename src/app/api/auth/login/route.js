@@ -40,7 +40,7 @@ export async function POST(request) {
     })
 
     if (!user) {
-      return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+      return Response.json({ ok: false, error: 'Invalid phone number or settlement' }, { status: 401 })
     }
 
   const cookie = await createSessionCookie({ id: user.id, role: user.role, sid: crypto.randomUUID() })

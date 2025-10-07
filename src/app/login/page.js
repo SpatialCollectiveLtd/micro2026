@@ -1,5 +1,7 @@
+"use client"
 import prisma from '@/lib/prisma'
 import Image from 'next/image'
+import { useEffect, useMemo, useState } from 'react'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,8 +17,54 @@ async function getSettlements() {
   }
 }
 
-export default async function LoginPage() {
-  const settlements = await getSettlements()
+export default function LoginPage() {
+  const [settlements, setSettlements] = useState([])
+  const [phone, setPhone] = useState('')
+  const [settlementId, setSettlementId] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    ;(async () => {
+      const res = await fetch('/api/admin/settlements')
+      const data = await res.json().catch(() => ({ ok: false }))
+      if (data?.ok) setSettlements(data.settlements)
+    })()
+  }, [])
+
+  const formValid = phone.trim().length > 0 && settlementId.trim().length > 0 && !loading
+
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!formValid) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim(), settlementId: settlementId.trim() }),
+        redirect: 'manual',
+      })
+      if (res.status === 0 || (res.status >= 300 && res.status < 400)) {
+        // browser will follow redirect automatically if not manual; manual gives us 0 in some environments
+        // Fallback: navigate client-side to dashboard; server also sets cookie
+        window.location.href = '/dashboard'
+        return
+      }
+      const data = await res.json().catch(() => ({ ok: false, error: 'Unexpected server response' }))
+      if (!res.ok || data?.ok === false) {
+        setError(data?.error || 'Login failed')
+        return
+      }
+      // If API returns ok without redirect (unlikely now), send to dashboard
+      window.location.href = '/dashboard'
+    } catch (err) {
+      setError('Network error. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 relative overflow-hidden">
@@ -33,7 +81,7 @@ export default async function LoginPage() {
             <p className="mt-1 text-sm text-neutral-300">Sign in to access your daily tasks.</p>
           </div>
 
-          <form className="space-y-4" action="/api/auth/login" method="post">
+          <form className="space-y-4" onSubmit={onSubmit}>
             <div>
               <label htmlFor="phone" className="mb-1 block text-sm font-medium">Phone Number</label>
               <input
@@ -44,7 +92,12 @@ export default async function LoginPage() {
                 required
                 placeholder="07XXXXXXXX"
                 className="block w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm placeholder-neutral-400 outline-none transition focus:border-red-400 focus:ring-0"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
+              {!phone.trim() && (
+                <div className="mt-1 text-xs text-red-300">Phone number is required</div>
+              )}
             </div>
 
             <div>
@@ -54,7 +107,8 @@ export default async function LoginPage() {
                 name="settlementId"
                 required
                 className="block w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm outline-none transition focus:border-red-400 focus:ring-0"
-                defaultValue=""
+                value={settlementId}
+                onChange={(e) => setSettlementId(e.target.value)}
               >
                 <option value="" disabled>
                   Select settlement
@@ -65,14 +119,24 @@ export default async function LoginPage() {
                   </option>
                 ))}
               </select>
+              {!settlementId.trim() && (
+                <div className="mt-1 text-xs text-red-300">Settlement is required</div>
+              )}
             </div>
 
             <button
               type="submit"
-              className="mt-2 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-neutral-950"
+              className="mt-2 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-neutral-950"
+              disabled={!formValid}
             >
-              Sign In
+              {loading ? 'Signing in…' : 'Sign In'}
             </button>
+
+            {error && (
+              <div className="rounded-md border border-red-400/30 bg-red-500/10 p-2 text-sm text-red-200">
+                {error}
+              </div>
+            )}
           </form>
         </div>
 
