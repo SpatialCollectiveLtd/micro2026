@@ -33,7 +33,7 @@ export default function Select({ value, onChange, options = [], placeholder = 'S
         >
           <Listbox.Options
             className={
-              'absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-md border border-black/10 bg-white/70 p-1 text-sm shadow-[0_8px_30px_rgb(0_0_0_/_0.06)] backdrop-blur-lg focus:outline-none dark:border-white/10 dark:bg-neutral-900/70'
+              'absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-md border border-black/15 bg-white/85 p-1 text-sm text-neutral-900 shadow-[0_8px_30px_rgb(0_0_0_/_0.08)] backdrop-blur-xl focus:outline-none dark:border-white/10 dark:bg-neutral-900/85 dark:text-neutral-50'
             }
           >
             {options.map((opt) => (
@@ -41,22 +41,22 @@ export default function Select({ value, onChange, options = [], placeholder = 'S
                 key={opt.value}
                 className={({ active }) =>
                   clsx(
-                    'relative cursor-pointer select-none rounded-md px-3 py-2 text-neutral-900 hover:bg-white/70 dark:text-white dark:hover:bg-neutral-800/70',
-                    active && 'bg-white/70 dark:bg-neutral-800/70'
+                    'relative cursor-pointer select-none rounded-md px-3 py-2',
+                    active ? 'bg-white/80 text-neutral-900 dark:bg-neutral-800/80 dark:text-white' : 'text-current',
                   )
                 }
                 value={opt}
               >
                 {({ selected }) => (
                   <div className="flex items-center justify-between gap-2">
-                    <span className={clsx('block truncate', selected && 'font-medium')}>{opt.label}</span>
-                    {selected && <FiCheck className="h-4 w-4 opacity-80" />}
+                    <span className={clsx('block truncate', selected ? 'font-semibold' : '')}>{opt.label}</span>
+                    {selected && <FiCheck className="h-4 w-4 opacity-90" />}
                   </div>
                 )}
               </Listbox.Option>
             ))}
             {options.length === 0 && (
-              <div className="px-3 py-2 text-neutral-500 dark:text-neutral-400">No options</div>
+              <div className="px-3 py-2 text-neutral-600 dark:text-neutral-300">No options</div>
             )}
           </Listbox.Options>
         </Transition>
