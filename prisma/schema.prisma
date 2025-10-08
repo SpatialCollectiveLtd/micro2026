@@ -103,6 +103,8 @@ model Image {
   campaign  Campaign? @relation(fields: [campaignId], references: [id])
   groundTruth Boolean?
   status    ImageStatus @default(PENDING)
+  latitude  Float?
+  longitude Float?
   active    Boolean  @default(true)
   tasks     Task[]
   createdAt DateTime @default(now())

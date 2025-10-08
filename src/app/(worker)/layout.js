@@ -15,14 +15,14 @@ export default function WorkerLayout({ children }) {
       <div className="mx-auto max-w-3xl px-4 py-4 sm:py-6">{children}</div>
 
       {/* Bottom tab bar */}
-      <nav className="fixed inset-x-0 bottom-3 z-50 mx-auto w-[92%] max-w-md rounded-2xl border border-white/20 bg-white/70 p-2 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/70">
+      <nav className="fixed inset-x-0 bottom-3 z-50 mx-auto w-[92%] max-w-md rounded-2xl border border-black/10 bg-white/65 p-2 shadow-[0_8px_30px_rgb(0_0_0_/_0.06)] backdrop-blur-lg dark:border-white/10 dark:bg-neutral-900/60">
         <ul className="flex items-center justify-between">
           {tabs.map((t) => (
             <li key={t.href} className="flex-1">
               <Link
                 href={t.href}
                 className={clsx(
-                  'flex h-12 flex-col items-center justify-center rounded-xl text-xs font-medium text-neutral-600 transition hover:bg-white/60 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800/60 dark:hover:text-white',
+                  'flex h-12 flex-col items-center justify-center rounded-xl text-xs font-medium text-neutral-600 transition hover:bg-white/70 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800/60 dark:hover:text-white',
                 )}
               >
                 <span className="text-lg" aria-hidden>

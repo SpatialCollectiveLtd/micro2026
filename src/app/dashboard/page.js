@@ -29,19 +29,25 @@ function ProgressRing({ current = 0, goal = 300 }) {
   const dash = (pct / 100) * circumference
   return (
     <svg width="140" height="140" viewBox="0 0 140 140">
-      <circle cx="70" cy="70" r={radius} fill="none" stroke="#eee" strokeWidth="12" />
+      <defs>
+        <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#fca5a5" />
+          <stop offset="100%" stopColor="#ef4444" />
+        </linearGradient>
+      </defs>
+      <circle cx="70" cy="70" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="12" />
       <circle
         cx="70"
         cy="70"
         r={radius}
         fill="none"
-        stroke="#ef4444"
+        stroke="url(#ringGradient)"
         strokeWidth="12"
         strokeDasharray={`${dash} ${circumference}`}
         strokeLinecap="round"
         transform="rotate(-90 70 70)"
       />
-      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="fill-current text-xl font-semibold">
+      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="fill-neutral-900 dark:fill-white text-2xl font-bold">
         {pct}%
       </text>
     </svg>
@@ -73,18 +79,18 @@ export default async function DashboardPage() {
     <WorkerLayout>
       <div className="space-y-6">
         {/* Greeting */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+        <div className="rounded-xl border border-black/10 bg-white/60 p-5 shadow-[0_8px_30px_rgb(0_0_0_/_0.06)] backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/60">
           <h1 className="text-xl font-semibold">Welcome back{user?.name ? `, ${user.name}` : ''}</h1>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Here’s your progress for today.</p>
         </div>
 
         {/* DailyCompletionCard */}
-        <div className="flex items-center gap-6 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+        <div className="flex items-center gap-6 rounded-xl border border-black/10 bg-white/60 p-5 shadow-[0_8px_30px_rgb(0_0_0_/_0.06)] backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/60">
           <div className="shrink-0">
             <ProgressRing current={completedToday} goal={goal} />
           </div>
           <div className="flex-1">
-            <div className="text-2xl font-semibold">{completedToday} / {goal}</div>
+            <div className="text-2xl font-semibold tracking-tight">{completedToday} / {goal}</div>
             <div className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Daily completion</div>
             <Link href="/tasks" className="mt-4 inline-block rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
               Start Task
@@ -93,9 +99,9 @@ export default async function DashboardPage() {
         </div>
 
         {/* NoticesFeed */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-0 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-          <div className="border-b border-neutral-200 p-4 text-sm font-medium dark:border-neutral-800">Notices</div>
-          <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <div className="rounded-xl border border-black/10 bg-white/60 p-0 shadow-[0_8px_30px_rgb(0_0_0_/_0.06)] backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/60">
+          <div className="border-b border-black/10 p-4 text-sm font-medium dark:border-white/10">Notices</div>
+          <ul className="divide-y divide-black/10 dark:divide-white/10">
             {notices.length === 0 && (
               <li className="p-4 text-sm text-neutral-500 dark:text-neutral-400">No active notices</li>
             )}

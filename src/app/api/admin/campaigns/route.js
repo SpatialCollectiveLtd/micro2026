@@ -1,5 +1,7 @@
+import 'server-only'
 import prisma from '@/lib/prisma'
 import { requireAdmin } from '@/lib/session'
+import { extractGpsFromUrl } from '@/lib/exif'
 
 function unauthorized() { return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 }) }
 
@@ -65,11 +67,29 @@ export async function POST(request) {
     return out
   }
 
-  // Create images in moderate concurrency batches to avoid overwhelming DB
+  // Check if GPS columns exist to avoid failing on environments where ensure not yet run
+  async function imagesGpsColumnsExist() {
+    try {
+      const rows = await prisma.$queryRawUnsafe(
+        "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'images' AND COLUMN_NAME IN ('latitude','longitude')"
+      )
+      const cols = new Set((rows || []).map((r) => r.COLUMN_NAME))
+      return cols.has('latitude') && cols.has('longitude')
+    } catch {
+      return false
+    }
+  }
+  const hasGpsCols = await imagesGpsColumnsExist()
+
+  // Create images with optional EXIF GPS. Bounded concurrency per batch to limit load.
   const images = []
-  for (const group of chunk(validUrls, 200)) {
+  for (const group of chunk(validUrls, 100)) {
     const created = await Promise.all(
-      group.map((url) => prisma.image.create({ data: { url, question, campaignId: campaign.id } }))
+      group.map(async (url) => {
+        const { latitude: lat, longitude: lon } = await extractGpsFromUrl(url)
+        const data = hasGpsCols ? { url, question, campaignId: campaign.id, latitude: lat, longitude: lon } : { url, question, campaignId: campaign.id }
+        return prisma.image.create({ data })
+      })
     )
     images.push(...created)
   }

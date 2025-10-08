@@ -10,7 +10,7 @@ export async function GET(request) {
   const format = searchParams.get('format') || 'json'
   const images = await prisma.image.findMany({ where: { status: 'COMPLETE' }, include: { campaign: true } })
   if (format === 'csv') {
-    const header = ['id','url','campaign','question','groundTruth']
+    const header = ['id','url','campaign','question','groundTruth','latitude','longitude']
     const lines = [header.join(',')]
     for (const img of images) {
       lines.push([
@@ -19,6 +19,8 @@ export async function GET(request) {
         img.campaign?.title || '',
         img.question,
         img.groundTruth === null || typeof img.groundTruth === 'undefined' ? '' : (img.groundTruth ? 'Yes' : 'No'),
+        img.latitude ?? '',
+        img.longitude ?? '',
       ].map(v => `"${(v ?? '').toString().replace(/"/g,'""')}"`).join(','))
     }
     const csv = lines.join('\n')

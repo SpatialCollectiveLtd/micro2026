@@ -1,7 +1,7 @@
 "use client"
 import WorkerLayout from '@/app/(worker)/layout'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import PanoViewer from '@/components/PanoViewer'
+import PanZoomImage from '@/components/PanZoomImage'
 
 export default function TasksPage() {
   const [immersive, setImmersive] = useState(true)
@@ -73,7 +73,7 @@ export default function TasksPage() {
         {/* Viewer area */}
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
           {immersive ? (
-            <PanoViewer imageUrl={task.image.url} />
+            <PanZoomImage src={task.image.url} alt="task image" className="h-[50vh] w-full rounded-lg" />
           ) : (
             <div className="h-[40vh] w-full overflow-x-auto rounded-lg bg-black">
               {/* Focused: show a flattened panoramic strip */}

@@ -91,6 +91,7 @@ export default async function CampaignDetailPage({ params }) {
               <tr>
                 <TH>Image</TH>
                 <TH>Ground Truth</TH>
+                <TH>GPS</TH>
                 <TH>Responses</TH>
               </tr>
             </THead>
@@ -105,6 +106,20 @@ export default async function CampaignDetailPage({ params }) {
                     </div>
                   </TD>
                   <TD>{img.groundTruth == null ? '—' : (img.groundTruth ? 'Yes' : 'No')}</TD>
+                  <TD>
+                    {typeof img.latitude === 'number' && typeof img.longitude === 'number' ? (
+                      <a
+                        className="text-blue-600 hover:underline dark:text-blue-400"
+                        href={`https://maps.google.com/?q=${img.latitude},${img.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {img.latitude.toFixed(5)}, {img.longitude.toFixed(5)}
+                      </a>
+                    ) : (
+                      <span className="text-neutral-400">—</span>
+                    )}
+                  </TD>
                   <TD>{imageResponseCounts[img.id] || 0}</TD>
                 </TR>
               ))}

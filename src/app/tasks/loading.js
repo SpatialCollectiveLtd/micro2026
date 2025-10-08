@@ -7,7 +7,7 @@ export default function Loading() {
       <div className="flex items-center justify-center py-16">
         <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-white/60 px-4 py-3 shadow-[0_8px_30px_rgb(0_0_0_/_0.06)] backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/60">
           <Spinner />
-          <span className="text-sm text-neutral-600 dark:text-neutral-300">Loading dashboard…</span>
+          <span className="text-sm text-neutral-600 dark:text-neutral-300">Loading tasks…</span>
         </div>
       </div>
     </WorkerLayout>
