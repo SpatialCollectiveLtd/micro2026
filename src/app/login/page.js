@@ -1,6 +1,7 @@
 "use client"
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
+import Select from '@/components/ui/select'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,9 @@ export default function LoginPage() {
   }, [])
 
   const formValid = phone.trim().length > 0 && settlementId.trim().length > 0 && !loading
+
+  const settlementOptions = useMemo(() => settlements.map(s => ({ value: s.id, label: s.name })), [settlements])
+  const selectedSettlement = useMemo(() => settlementOptions.find(o => o.value === settlementId) || null, [settlementOptions, settlementId])
 
   const onSubmit = async (e) => {
     e.preventDefault()
@@ -108,23 +112,12 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="settlementId" className="mb-1 block text-sm font-medium">Settlement</label>
-              <select
-                id="settlementId"
-                name="settlementId"
-                required
-                className="block w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm outline-none transition focus:border-red-400 focus:ring-0"
-                value={settlementId}
-                onChange={(e) => setSettlementId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Select settlement
-                </option>
-                {settlements.map((s) => (
-                  <option key={s.id} value={s.id} className="bg-neutral-900">
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={selectedSettlement}
+                onChange={(opt) => setSettlementId(opt?.value || '')}
+                options={settlementOptions}
+                placeholder="Select settlement"
+              />
               {!settlementId.trim() && (
                 <div className="mt-1 text-xs text-red-300">Settlement is required</div>
               )}

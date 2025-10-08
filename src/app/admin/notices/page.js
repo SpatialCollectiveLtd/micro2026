@@ -5,6 +5,7 @@ import Textarea from '@/components/ui/textarea'
 import Checkbox from '@/components/ui/checkbox'
 import Button from '@/components/ui/button'
 import { Table, THead, TR, TH, TD } from '@/components/ui/table'
+import Select from '@/components/ui/select'
 
 export default function NoticesPage() {
   const [settlements, setSettlements] = useState([])
@@ -67,19 +68,25 @@ export default function NoticesPage() {
           </div>
           <div>
             <div className="text-xs text-neutral-500 mb-1">Priority</div>
-            <select name="priority" className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={form.priority} onChange={(e) => setForm(f => ({ ...f, priority: e.target.value }))}>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-            </select>
+            <Select
+              value={{ value: form.priority, label: form.priority.charAt(0) + form.priority.slice(1).toLowerCase() }}
+              onChange={(opt) => setForm(f => ({ ...f, priority: opt.value }))}
+              options={[
+                { value: 'LOW', label: 'Low' },
+                { value: 'MEDIUM', label: 'Medium' },
+                { value: 'HIGH', label: 'High' },
+              ]}
+            />
           </div>
         </div>
         <div>
           <div className="text-xs text-neutral-500 mb-1">Target User (optional)</div>
-          <select className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={form.userId || ''} onChange={(e) => setForm(f => ({ ...f, userId: e.target.value || null }))}>
-            <option value="">— None —</option>
-            {users.map(u => <option key={u.id} value={u.id}>{u.name || u.phone}</option>)}
-          </select>
+          <Select
+            value={form.userId ? { value: form.userId, label: (users.find(u => u.id === form.userId)?.name || users.find(u => u.id === form.userId)?.phone || 'Selected') } : null}
+            onChange={(opt) => setForm(f => ({ ...f, userId: opt?.value || null }))}
+            options={[{ value: '', label: '— None —' }, ...users.map(u => ({ value: u.id, label: u.name || u.phone }))]}
+            placeholder="— None —"
+          />
           <div className="mt-1 text-xs text-neutral-500">If set, this notice will also appear for the selected user.</div>
         </div>
         <div>

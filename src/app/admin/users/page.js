@@ -4,6 +4,7 @@ import Input from '@/components/ui/input'
 import { Table, THead, TR, TH, TD } from '@/components/ui/table'
 import Button from '@/components/ui/button'
 import Checkbox from '@/components/ui/checkbox'
+import Select from '@/components/ui/select'
 
 export default function UsersPage() {
   const [users, setUsers] = useState([])
@@ -57,6 +58,19 @@ export default function UsersPage() {
   }
 
   const roles = ['WORKER', 'ADMIN']
+  const roleOptions = useMemo(() => [{ value: '', label: 'All' }, ...roles.map(r => ({ value: r, label: r }))], [])
+  const roleSelected = useMemo(() => roleOptions.find(o => o.value === filters.role) || roleOptions[0], [roleOptions, filters.role])
+  const settlementOptions = useMemo(() => [{ value: '', label: 'All' }, ...settlements.map(s => ({ value: s.id, label: s.name }))], [settlements])
+  const settlementSelected = useMemo(() => settlementOptions.find(o => o.value === filters.settlementId) || settlementOptions[0], [settlementOptions, filters.settlementId])
+  const sortOptions = useMemo(() => ([
+    { value: 'createdAt:desc', label: 'Newest' },
+    { value: 'createdAt:asc', label: 'Oldest' },
+    { value: 'name:asc', label: 'Name A→Z' },
+    { value: 'name:desc', label: 'Name Z→A' },
+    { value: 'phone:asc', label: 'Phone ↑' },
+    { value: 'phone:desc', label: 'Phone ↓' },
+  ]), [])
+  const sortSelected = useMemo(() => sortOptions.find(o => o.value === filters.sort) || sortOptions[0], [sortOptions, filters.sort])
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">
@@ -72,28 +86,15 @@ export default function UsersPage() {
         </div>
         <div>
           <div className="text-xs text-neutral-500 mb-1">Role</div>
-          <select className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={filters.role} onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}>
-            <option value="">All</option>
-            {roles.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
+          <Select value={roleSelected} onChange={(opt) => setFilters(f => ({ ...f, role: opt.value }))} options={roleOptions} />
         </div>
         <div>
           <div className="text-xs text-neutral-500 mb-1">Settlement</div>
-          <select className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={filters.settlementId} onChange={(e) => setFilters((f) => ({ ...f, settlementId: e.target.value }))}>
-            <option value="">All</option>
-            {settlements.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+          <Select value={settlementSelected} onChange={(opt) => setFilters(f => ({ ...f, settlementId: opt.value }))} options={settlementOptions} />
         </div>
         <div>
           <div className="text-xs text-neutral-500 mb-1">Sort</div>
-          <select className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={filters.sort} onChange={(e) => setFilters((f) => ({ ...f, sort: e.target.value }))}>
-            <option value="createdAt:desc">Newest</option>
-            <option value="createdAt:asc">Oldest</option>
-            <option value="name:asc">Name A→Z</option>
-            <option value="name:desc">Name Z→A</option>
-            <option value="phone:asc">Phone ↑</option>
-            <option value="phone:desc">Phone ↓</option>
-          </select>
+          <Select value={sortSelected} onChange={(opt) => setFilters(f => ({ ...f, sort: opt.value }))} options={sortOptions} />
         </div>
         <div className="flex items-end">
           <Button type="submit" className="w-full">Filter</Button>
@@ -163,13 +164,16 @@ export default function UsersPage() {
                 <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} required />
                 {!form.phone && <div className="mt-1 text-xs text-red-600">Phone is required</div>}
               </div>
-              <select className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={form.role} onChange={(e) => setForm(f => ({ ...f, role: e.target.value }))}>
-                {roles.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-              <select className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" value={form.settlementId} onChange={(e) => setForm(f => ({ ...f, settlementId: e.target.value }))}>
-                <option value="">No Settlement</option>
-                {settlements.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+              <Select
+                value={{ value: form.role, label: form.role }}
+                onChange={(opt) => setForm(f => ({ ...f, role: opt.value }))}
+                options={roles.map(r => ({ value: r, label: r }))}
+              />
+              <Select
+                value={form.settlementId ? { value: form.settlementId, label: settlements.find(s => s.id === form.settlementId)?.name || 'Selected' } : null}
+                onChange={(opt) => setForm(f => ({ ...f, settlementId: opt?.value || '' }))}
+                options={[{ value: '', label: 'No Settlement' }, ...settlements.map(s => ({ value: s.id, label: s.name }))]}
+              />
               <div className="flex items-center gap-2 text-sm"><Checkbox checked={true} readOnly /> Active by default</div>
               {msg.text && (
                 <div className={msg.type === 'error' ? 'rounded-md border border-red-400/30 bg-red-500/10 p-2 text-sm text-red-700' : 'rounded-md border border-green-400/30 bg-green-500/10 p-2 text-sm text-green-700'}>
