@@ -1,8 +1,8 @@
 "use client"
 import WorkerLayout from '@/app/(worker)/layout'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import PanZoomImage from '@/components/PanZoomImage'
 import TechLoader from '@/components/TechLoader'
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
 export default function TasksPage() {
   const [immersive, setImmersive] = useState(true)
@@ -78,28 +78,33 @@ export default function TasksPage() {
         {/* Viewer area */}
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
           {immersive ? (
-            <PanZoomImage src={task.image.url} alt="task image" className="h-[50vh] w-full rounded-lg" />
+            // Immersive: bounded zoom & pan
+            <div className="h-[60vh] w-full rounded-lg bg-black">
+              <TransformWrapper
+                limitToBounds
+                centerOnInit
+                doubleClick={{ disabled: false, step: 0.7 }}
+                wheel={{ step: 0.15 }}
+                pinch={{ step: 0.15 }}
+                minScale={1}
+                maxScale={5}
+              >
+                <TransformComponent wrapperClass="h-full w-full" contentClass="flex items-center justify-center h-full w-full">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={task.image.url} alt="task image" className="max-h-full max-w-full select-none" draggable={false} onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }} />
+                </TransformComponent>
+              </TransformWrapper>
+            </div>
           ) : (
-            <div className="h-[40vh] w-full overflow-x-auto rounded-lg bg-black">
-              {/* Focused: show a flattened panoramic strip */}
+            // Focused: fit entire image within container
+            <div className="h-[50vh] w-full overflow-hidden rounded-lg bg-black grid place-items-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={task.image.url}
-                alt="panorama"
-                className="h-full w-auto select-none"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                  const holder = document.createElement('div')
-                  holder.className = 'flex h-full w-full items-center justify-center text-sm text-red-300'
-                  holder.textContent = 'The panorama cannot be loaded'
-                  e.currentTarget.parentElement?.appendChild(holder)
-                }}
-              />
+              <img src={task.image.url} alt="task image" className="max-h-full max-w-full object-contain select-none" draggable={false} onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }} />
             </div>
           )}
 
           {/* Question Overlay */}
-          <div className="mt-4 rounded-lg border border-neutral-200 bg-white p-3 text-sm shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="mt-4 rounded-lg border border-neutral-200 bg-white p-3 text-base shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             {task.image.question}
           </div>
 
