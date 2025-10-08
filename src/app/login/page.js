@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import Select from '@/components/ui/select'
 import TechLoader from '@/components/TechLoader'
+import Skeleton from '@/components/Skeleton'
 
 export const dynamic = 'force-dynamic'
 
@@ -141,7 +142,22 @@ export default function LoginPage() {
         </div>
 
         {loading && (
-          <TechLoader overlay label="Signing you in…" />
+          <div className="fixed inset-0 z-50 grid place-items-center bg-neutral-950">
+            <div className="w-full max-w-6xl px-4">
+              <div className="mb-6 grid gap-4 sm:grid-cols-3">
+                <Skeleton className="h-32 rounded-2xl" />
+                <Skeleton className="h-32 rounded-2xl" />
+                <Skeleton className="h-32 rounded-2xl" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Skeleton className="h-56 rounded-2xl" />
+                <Skeleton className="h-56 rounded-2xl" />
+              </div>
+              <div className="mt-8 flex items-center justify-center">
+                <TechLoader label="Signing you in…" />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Footer */}

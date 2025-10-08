@@ -205,7 +205,7 @@ export default function UsersPage() {
               Upload a CSV with headers: <span className="font-mono">name</span>, <span className="font-mono">phone</span>, <span className="font-mono">settlementName</span>.
               Optional headers: <span className="font-mono">role</span> (WORKER/ADMIN), <span className="font-mono">active</span> (true/false). Max 5MB.
             </div>
-            <form className="space-y-3" onSubmit={async (e) => {
+              <form className="space-y-3" onSubmit={async (e) => {
               e.preventDefault()
               setImportState(s => ({ ...s, uploading: true, result: null, error: '' }))
               const fd = new FormData(e.currentTarget)
@@ -252,7 +252,7 @@ John Admin,0799988877,,ADMIN,false</pre>
               )}
               <div className="flex justify-end gap-2">
                 <Button variant="outline" type="button" onClick={() => setShowImport(false)}>Close</Button>
-                <Button type="submit" disabled={importState.uploading}>{importState.uploading ? 'Uploading…' : 'Upload'}</Button>
+                <Button type="submit" disabled={importState.uploading}>{importState.uploading ? (<span className="inline-flex items-center gap-2"><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Importing…</span>) : 'Upload'}</Button>
               </div>
             </form>
           </div>

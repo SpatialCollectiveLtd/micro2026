@@ -3,6 +3,7 @@ import WorkerLayout from '@/app/(worker)/layout'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import TechLoader from '@/components/TechLoader'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import Skeleton from '@/components/Skeleton'
 
 export default function TasksPage() {
   const [immersive, setImmersive] = useState(true)
@@ -49,8 +50,11 @@ export default function TasksPage() {
 
   const content = useMemo(() => {
     if (loading) return (
-      <div className="flex items-center justify-center py-12">
-        <TechLoader label="Loading next task…" />
+      <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+        <Skeleton className="h-[60vh] w-full rounded-lg" />
+        <div className="mt-4">
+          <Skeleton className="h-6 w-2/3" />
+        </div>
       </div>
     )
     if (!task) return <div className="p-6 text-sm text-neutral-500">All done for now. 🎉</div>
@@ -115,21 +119,16 @@ export default function TasksPage() {
               onClick={() => onAnswer(true)}
               className="flex-1 rounded-md bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
             >
-              Yes
+              {answering ? <span className="inline-flex items-center gap-2"><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Submitting…</span> : 'Yes'}
             </button>
             <button
               disabled={answering}
               onClick={() => onAnswer(false)}
               className="flex-1 rounded-md border border-neutral-900 px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 disabled:opacity-50 dark:border-white dark:text-white dark:hover:bg-neutral-800"
             >
-              No
+              {answering ? <span className="inline-flex items-center gap-2"><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-neutral-900/30 border-t-neutral-900 dark:border-white/30 dark:border-t-white" /> Submitting…</span> : 'No'}
             </button>
           </div>
-          {answering && (
-            <div className="mt-4 flex items-center justify-center">
-              <TechLoader label="Submitting answer…" />
-            </div>
-          )}
         </div>
       </div>
     )
