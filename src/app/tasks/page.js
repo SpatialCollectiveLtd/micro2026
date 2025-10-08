@@ -2,6 +2,7 @@
 import WorkerLayout from '@/app/(worker)/layout'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import PanZoomImage from '@/components/PanZoomImage'
+import TechLoader from '@/components/TechLoader'
 
 export default function TasksPage() {
   const [immersive, setImmersive] = useState(true)
@@ -47,7 +48,11 @@ export default function TasksPage() {
   }, [task, answering, fetchNext])
 
   const content = useMemo(() => {
-    if (loading) return <div className="p-6 text-sm text-neutral-500">Loading…</div>
+    if (loading) return (
+      <div className="flex items-center justify-center py-12">
+        <TechLoader label="Loading next task…" />
+      </div>
+    )
     if (!task) return <div className="p-6 text-sm text-neutral-500">All done for now. 🎉</div>
     return (
       <div className={`transition-transform duration-300 ${transition ? '-translate-x-8 opacity-0' : 'translate-x-0 opacity-100'}`}>
@@ -115,6 +120,11 @@ export default function TasksPage() {
               No
             </button>
           </div>
+          {answering && (
+            <div className="mt-4 flex items-center justify-center">
+              <TechLoader label="Submitting answer…" />
+            </div>
+          )}
         </div>
       </div>
     )

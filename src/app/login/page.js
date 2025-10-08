@@ -2,6 +2,7 @@
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import Select from '@/components/ui/select'
+import TechLoader from '@/components/TechLoader'
 
 export const dynamic = 'force-dynamic'
 
@@ -138,6 +139,10 @@ export default function LoginPage() {
             )}
           </form>
         </div>
+
+        {loading && (
+          <TechLoader overlay label="Signing you in…" />
+        )}
 
         {/* Footer */}
         <div className="mt-6 w-full max-w-3xl text-center px-4">
