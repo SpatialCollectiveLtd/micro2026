@@ -149,13 +149,13 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="mt-6 w-full max-w-3xl text-center px-4">
           <div className="text-sm text-neutral-300">Digital Public Works for Urban Resilience.</div>
-          <div className="mx-auto mt-3 w-full max-w-2xl rounded-xl border border-white/30 bg-white/90 p-3 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.4)] backdrop-blur-md backdrop-saturate-150">
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-              <Image src="/logos/World Bank.jpg" alt="World Bank" width={90} height={32} className="object-contain" sizes="(max-width: 640px) 72px, 90px" />
-              <Image src="/logos/EU Logo.jpg" alt="EU" width={64} height={40} className="object-contain" sizes="(max-width: 640px) 54px, 64px" />
-              <Image src="/logos/GoK Coat of Arms.png" alt="Govt of Kenya" width={48} height={48} className="object-contain" sizes="(max-width: 640px) 44px, 48px" />
-              <Image src="/logos/KISIP-LOGO.png" alt="KISIP" width={84} height={32} className="object-contain" sizes="(max-width: 640px) 66px, 84px" />
-              <Image src="/logos/AFD logo.png" alt="AFD" width={76} height={32} className="object-contain" sizes="(max-width: 640px) 60px, 76px" />
+          <div className="mx-auto mt-3 w-full max-w-xl rounded-xl border border-white/30 bg-white/90 p-2 shadow-[0_6px_24px_-12px_rgba(0,0,0,0.35)] backdrop-blur-md backdrop-saturate-150">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+              <Image src="/logos/World Bank.jpg" alt="World Bank" width={72} height={26} className="object-contain" sizes="(max-width: 640px) 60px, 72px" />
+              <Image src="/logos/EU Logo.jpg" alt="EU" width={56} height={36} className="object-contain" sizes="(max-width: 640px) 48px, 56px" />
+              <Image src="/logos/GoK Coat of Arms.png" alt="Govt of Kenya" width={40} height={40} className="object-contain" sizes="(max-width: 640px) 36px, 40px" />
+              <Image src="/logos/KISIP-LOGO.png" alt="KISIP" width={66} height={26} className="object-contain" sizes="(max-width: 640px) 56px, 66px" />
+              <Image src="/logos/AFD logo.png" alt="AFD" width={60} height={26} className="object-contain" sizes="(max-width: 640px) 52px, 60px" />
             </div>
           </div>
         </div>
