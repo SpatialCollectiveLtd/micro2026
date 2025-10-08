@@ -11,6 +11,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true)
   const [answering, setAnswering] = useState(false)
   const [transition, setTransition] = useState(false)
+  const [imgSize, setImgSize] = useState({ w: 0, h: 0 })
 
   const fetchNext = useCallback(async () => {
     setLoading(true)
@@ -51,7 +52,7 @@ export default function TasksPage() {
   const content = useMemo(() => {
     if (loading) return (
       <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-        <Skeleton className="h-[60vh] w-full rounded-lg" />
+        <Skeleton className="h-[45dvh] w-full rounded-lg md:h-[55dvh] lg:h-[60dvh]" />
         <div className="mt-4">
           <Skeleton className="h-6 w-2/3" />
         </div>
@@ -80,10 +81,10 @@ export default function TasksPage() {
         </div>
 
         {/* Viewer area */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950 pb-6">
           {immersive ? (
-            // Immersive: bounded zoom & pan
-            <div className="h-[60vh] w-full rounded-lg bg-black">
+            // Immersive: bounded zoom & pan (constrained container)
+            <div className="relative z-0 w-full overflow-hidden rounded-lg bg-black h-[45dvh] sm:h-[50dvh] md:h-[60dvh] max-h-[70dvh]">
               <TransformWrapper
                 limitToBounds
                 centerOnInit
@@ -93,27 +94,53 @@ export default function TasksPage() {
                 minScale={1}
                 maxScale={5}
               >
-                <TransformComponent wrapperClass="h-full w-full" contentClass="flex items-center justify-center h-full w-full">
+                <TransformComponent wrapperClass="h-full w-full" contentClass="flex h-full w-full items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={task.image.url} alt="task image" className="max-h-full max-w-full select-none" draggable={false} onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }} />
+                  <img
+                    src={task.image.url}
+                    alt="task image"
+                    className="max-h-full max-w-full select-none"
+                    draggable={false}
+                    onLoad={(e) => {
+                      const { naturalWidth, naturalHeight } = e.currentTarget
+                      if (naturalWidth && naturalHeight) setImgSize({ w: naturalWidth, h: naturalHeight })
+                    }}
+                    onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }}
+                  />
                 </TransformComponent>
               </TransformWrapper>
             </div>
           ) : (
-            // Focused: fit entire image within container
-            <div className="h-[50vh] w-full overflow-hidden rounded-lg bg-black grid place-items-center">
+            // Focused: container adapts to image aspect ratio with a sensible max height
+            <div
+              className="relative z-0 grid w-full place-items-center overflow-hidden rounded-lg bg-black"
+              style={{
+                aspectRatio: imgSize.w && imgSize.h ? `${imgSize.w} / ${imgSize.h}` : undefined,
+                maxHeight: '70dvh',
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={task.image.url} alt="task image" className="max-h-full max-w-full object-contain select-none" draggable={false} onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }} />
+              <img
+                src={task.image.url}
+                alt="task image"
+                className="h-full w-full select-none object-contain"
+                draggable={false}
+                onLoad={(e) => {
+                  const { naturalWidth, naturalHeight } = e.currentTarget
+                  if (naturalWidth && naturalHeight) setImgSize({ w: naturalWidth, h: naturalHeight })
+                }}
+                onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }}
+              />
             </div>
           )}
 
-          {/* Question Overlay */}
-          <div className="mt-4 rounded-lg border border-neutral-200 bg-white p-3 text-base shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          {/* Question */}
+          <div className="relative z-10 mt-4 rounded-lg border border-neutral-200 bg-white p-3 text-base shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             {task.image.question}
           </div>
 
           {/* Answer buttons */}
-          <div className="mt-4 flex items-center gap-3">
+          <div className="relative z-10 mt-4 flex items-center gap-3">
             <button
               disabled={answering}
               onClick={() => onAnswer(true)}
@@ -132,11 +159,11 @@ export default function TasksPage() {
         </div>
       </div>
     )
-  }, [loading, task, immersive, answering, transition, onAnswer])
+  }, [loading, task, immersive, answering, transition, onAnswer, imgSize])
 
   return (
     <WorkerLayout>
-      {content}
+      <div className="w-full px-3 pb-24 sm:px-4">{content}</div>
     </WorkerLayout>
   )
 }
