@@ -63,13 +63,23 @@ export default function NewCampaignPage() {
     }
   }
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="mb-4 text-2xl font-semibold">Create Campaign</h1>
-      <form onSubmit={onSubmit} encType="multipart/form-data" className="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-        <div>
-          <Label>Title</Label>
-          <Input name="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-          {!title.trim() && <div className="mt-1 text-xs text-red-600">Title is required</div>}
+    <div className="mx-auto max-w-3xl space-y-4">
+      <h1 className="text-2xl font-semibold">Create Campaign</h1>
+      <form onSubmit={onSubmit} encType="multipart/form-data" className="space-y-6 rounded-2xl border border-white/15 bg-white/10 p-6 shadow-xl backdrop-blur-md dark:border-neutral-800/60 dark:bg-neutral-900/60">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label>Title</Label>
+            <Input name="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+            {!title.trim() && <div className="mt-1 text-xs text-red-600">Title is required</div>}
+          </div>
+          <div>
+            <Label>Image URLs CSV</Label>
+            <div>
+              <input type="file" accept=".csv" onChange={(e) => setFile(e.target.files?.[0] || null)} required className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-neutral-200 dark:file:bg-neutral-800 dark:hover:file:bg-neutral-700" />
+              <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">CSV with a single image URL per line.</p>
+            </div>
+            {!file && <div className="mt-1 text-xs text-red-600">CSV file is required</div>}
+          </div>
         </div>
         <div>
           <Label>Question</Label>
@@ -77,36 +87,30 @@ export default function NewCampaignPage() {
           {!question.trim() && <div className="mt-1 text-xs text-red-600">Question is required</div>}
         </div>
         <div>
-          <Label>Image URLs CSV</Label>
-          <div>
-            <input type="file" accept=".csv" onChange={(e) => setFile(e.target.files?.[0] || null)} required className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-neutral-200 dark:file:bg-neutral-800 dark:hover:file:bg-neutral-700" />
-            <p className="mt-1 text-xs text-neutral-500">CSV with a single image URL per line.</p>
-          </div>
-          {!file && <div className="mt-1 text-xs text-red-600">CSV file is required</div>}
-        </div>
-        <div>
           <Label className="mb-2">Target Settlements</Label>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {settlements.map((s) => {
-              const checked = selected.has(s.id)
-              return (
-                <label key={s.id} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(e) => {
-                      setSelected((prev) => {
-                        const next = new Set(prev)
-                        if (e.target.checked) next.add(s.id)
-                        else next.delete(s.id)
-                        return next
-                      })
-                    }}
-                  />
-                  <span>{s.name}</span>
-                </label>
-              )
-            })}
+          <div className="rounded-lg border border-white/15 bg-white/5 p-3 backdrop-blur-sm dark:border-neutral-800/60 dark:bg-neutral-900/40">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {settlements.map((s) => {
+                const checked = selected.has(s.id)
+                return (
+                  <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        setSelected((prev) => {
+                          const next = new Set(prev)
+                          if (e.target.checked) next.add(s.id)
+                          else next.delete(s.id)
+                          return next
+                        })
+                      }}
+                    />
+                    <span>{s.name}</span>
+                  </label>
+                )
+              })}
+            </div>
           </div>
           {selected.size === 0 && <div className="mt-1 text-xs text-red-600">Select at least one settlement</div>}
         </div>

@@ -9,9 +9,14 @@ export async function PATCH(request, { params }) {
   const id = params.id
   const body = await request.json().catch(() => null)
   if (!body) return Response.json({ ok: false, error: 'Invalid JSON' }, { status: 400 })
-  const { name, role, settlementId, active } = body
+  const { name, phone, role, settlementId, active } = body
   const data = {}
   if (typeof name !== 'undefined') data.name = name?.trim() || null
+  if (typeof phone !== 'undefined') {
+    const p = String(phone).trim()
+    if (!p) return Response.json({ ok: false, error: 'Phone cannot be empty' }, { status: 400 })
+    data.phone = p
+  }
   if (typeof role !== 'undefined') {
     if (!['WORKER', 'ADMIN'].includes(role)) return Response.json({ ok: false, error: 'Invalid role' }, { status: 400 })
     data.role = role
@@ -21,7 +26,10 @@ export async function PATCH(request, { params }) {
   try {
     const user = await prisma.user.update({ where: { id }, data })
     return Response.json({ ok: true, user })
-  } catch {
+  } catch (e) {
+    if (e && e.code === 'P2002') {
+      return Response.json({ ok: false, error: 'Duplicate phone' }, { status: 409 })
+    }
     return Response.json({ ok: false, error: 'Update failed' }, { status: 400 })
   }
 }

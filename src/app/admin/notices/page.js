@@ -6,6 +6,7 @@ import Checkbox from '@/components/ui/checkbox'
 import Button from '@/components/ui/button'
 import { Table, THead, TR, TH, TD } from '@/components/ui/table'
 import Select from '@/components/ui/select'
+import Combobox from '@/components/ui/combobox'
 
 export default function NoticesPage() {
   const [settlements, setSettlements] = useState([])
@@ -59,7 +60,7 @@ export default function NoticesPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <h1 className="text-2xl font-semibold">Notices</h1>
 
-      <form onSubmit={onSubmit} className="space-y-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+      <form onSubmit={onSubmit} className="space-y-6 rounded-2xl border border-white/15 bg-white/10 p-6 shadow-xl backdrop-blur-md dark:border-neutral-800/60 dark:bg-neutral-900/60">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <div className="text-xs text-neutral-500 mb-1">Title</div>
@@ -81,12 +82,15 @@ export default function NoticesPage() {
         </div>
         <div>
           <div className="text-xs text-neutral-500 mb-1">Target User (optional)</div>
-          <Select
-            value={form.userId ? { value: form.userId, label: (users.find(u => u.id === form.userId)?.name || users.find(u => u.id === form.userId)?.phone || 'Selected') } : null}
-            onChange={(opt) => setForm(f => ({ ...f, userId: opt?.value || null }))}
-            options={[{ value: '', label: '— None —' }, ...users.map(u => ({ value: u.id, label: u.name || u.phone }))]}
-            placeholder="— None —"
-          />
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto] items-start">
+            <Combobox
+              value={form.userId ? { value: form.userId, label: users.find(u => u.id === form.userId)?.name || users.find(u => u.id === form.userId)?.phone || 'Selected' } : null}
+              onChange={(opt) => setForm(f => ({ ...f, userId: opt?.value || null }))}
+              options={users.map(u => ({ value: u.id, label: (u.name ? `${u.name} · ${u.phone}` : u.phone) }))}
+              placeholder="Type a name or phone…"
+            />
+            <Button type="button" variant="outline" onClick={() => setForm(f => ({ ...f, userId: null }))}>Clear</Button>
+          </div>
           <div className="mt-1 text-xs text-neutral-500">If set, this notice will also appear for the selected user.</div>
         </div>
         <div>
@@ -94,13 +98,14 @@ export default function NoticesPage() {
           <Textarea name="message" value={form.message} onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))} required />
           {!form.message.trim() && <div className="mt-1 text-xs text-red-600">Message is required</div>}
         </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" checked={form.allUsers} onChange={(e) => setForm(f => ({ ...f, allUsers: e.target.checked, settlements: e.target.checked ? [] : f.settlements }))} />
-          <span className="text-sm">All Users</span>
-        </div>
-        <div>
-          <div className="text-xs text-neutral-500 mb-2">Target Settlements (unchecked All Users)</div>
-          <div className="grid gap-2 sm:grid-cols-2">
+        <div className="rounded-lg border border-white/15 bg-white/5 p-3 backdrop-blur-sm dark:border-neutral-800/60 dark:bg-neutral-900/40">
+          <div className="flex items-center gap-2">
+            <input type="checkbox" checked={form.allUsers} onChange={(e) => setForm(f => ({ ...f, allUsers: e.target.checked, settlements: e.target.checked ? [] : f.settlements }))} />
+            <span className="text-sm">All Users</span>
+          </div>
+          <div className="mt-2">
+            <div className="text-xs text-neutral-500 mb-2">Target Settlements (unchecked All Users)</div>
+            <div className="grid gap-2 sm:grid-cols-2">
             {settlements.map(s => {
               const checked = form.settlements.includes(s.id)
               return (
@@ -115,8 +120,9 @@ export default function NoticesPage() {
                 </label>
               )
             })}
+            </div>
+            {!form.allUsers && form.settlements.length === 0 && <div className="mt-1 text-xs text-red-600">Select at least one settlement</div>}
           </div>
-          {!form.allUsers && form.settlements.length === 0 && <div className="mt-1 text-xs text-red-600">Select at least one settlement</div>}
         </div>
         {msg.text && (
           <div className={msg.type === 'success' ? 'rounded-md border border-green-400/30 bg-green-500/10 p-2 text-sm text-green-700' : 'rounded-md border border-red-400/30 bg-red-500/10 p-2 text-sm text-red-700'}>
