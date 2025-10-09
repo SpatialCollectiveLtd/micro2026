@@ -62,6 +62,8 @@ export async function POST(request) {
   res.headers.append('set-cookie', cookie)
   return res
   } catch (e) {
-    return Response.json({ ok: false, error: 'Server error' }, { status: 500 })
+    console.error('Login error:', e)
+    const msg = process.env.NODE_ENV === 'development' ? (e?.message || 'Server error') : 'Server error'
+    return Response.json({ ok: false, error: msg }, { status: 500 })
   }
 }

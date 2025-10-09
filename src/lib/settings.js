@@ -1,11 +1,17 @@
 import prisma from '@/lib/prisma'
 
 export async function getWorkingHours() {
-  const rows = await prisma.setting.findMany({ where: { key: { in: ['working_hours_start', 'working_hours_end'] } } })
-  const map = new Map(rows.map(r => [r.key, r.value]))
-  const start = map.get('working_hours_start') || null
-  const end = map.get('working_hours_end') || null
-  return { start, end }
+  try {
+    const rows = await prisma.setting.findMany({ where: { key: { in: ['working_hours_start', 'working_hours_end'] } } })
+    const map = new Map(rows.map(r => [r.key, r.value]))
+    const start = map.get('working_hours_start') || null
+    const end = map.get('working_hours_end') || null
+    return { start, end }
+  } catch (err) {
+    // If settings table or client is unavailable, default to unrestricted hours
+    console.error('getWorkingHours error:', err?.message || err)
+    return { start: null, end: null }
+  }
 }
 
 export function parseHHmm(str) {
