@@ -40,11 +40,16 @@ export async function POST(request) {
           { role: 'ADMIN', settlementId: null }, // admin flexibility
         ],
       },
-      select: { id: true, role: true, settlementId: true },
+      select: { id: true, role: true, settlementId: true, active: true },
     })
 
     if (!user) {
       return Response.json({ ok: false, error: 'Invalid phone number or settlement' }, { status: 401 })
+    }
+
+    // Block suspended users at login
+    if (user.active === false) {
+      return Response.json({ ok: false, error: 'Your account has been suspended.' }, { status: 403 })
     }
 
     if (user.role !== 'ADMIN' && !isNowWithinWindow(start, end)) {

@@ -11,6 +11,9 @@ function startOfToday() {
 export async function GET(request) {
   const session = await parseSessionCookie(request)
   if (!session?.id) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+  // Block suspended users
+  const u = await prisma.user.findUnique({ where: { id: session.id }, select: { active: true } })
+  if (!u?.active) return Response.json({ ok: false, error: 'Account suspended' }, { status: 403 })
 
   const DAILY_TARGET = Number(process.env.DAILY_TARGET || '300')
   const todayStart = startOfToday()
@@ -29,7 +32,7 @@ export async function GET(request) {
 
   const task = await prisma.task.findFirst({
     where: { userId: session.id, completed: false, image: { active: true, campaign: { archived: false } } },
-    orderBy: { createdAt: 'asc' },
+    orderBy: [{ image: { sequence: 'asc' } }, { createdAt: 'asc' }],
     include: { image: true },
   })
 

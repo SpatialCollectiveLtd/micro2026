@@ -2,6 +2,7 @@
 import WorkerLayout from '@/app/(worker)/layout'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import TaskFullscreenOverlay from '@/components/TaskFullscreenOverlay'
 import Skeleton from '@/components/Skeleton'
 
 export default function TasksPage() {
@@ -15,7 +16,8 @@ export default function TasksPage() {
   const viewRef = useRef(null)
   const containerRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const toggleFullscreen = useCallback(() => setIsFullscreen((v) => !v), [])
+  const openFullscreen = useCallback(() => setIsFullscreen(true), [])
+  const closeFullscreen = useCallback(() => setIsFullscreen(false), [])
 
   const fetchNext = useCallback(async () => {
     setLoading(true)
@@ -81,34 +83,20 @@ export default function TasksPage() {
             <div className="text-sm font-medium">Progress: {progress.completedToday} / {progress.dailyTarget || '—'} today</div>
             <button
               className="rounded-md border border-neutral-200 px-3 py-1.5 text-sm dark:border-neutral-800"
-              onClick={toggleFullscreen}
+              onClick={openFullscreen}
             >
               Fullscreen
             </button>
           </div>
         )}
 
-        {/* Viewer + QA container (fullscreen capable) */}
+        {/* Viewer + QA container (card) */}
         <div
           ref={containerRef}
-          className={
-            isFullscreen
-              ? 'fixed inset-0 z-40 bg-black'
-              : 'rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950 pb-6'
-          }
+          className={'rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950 pb-6'}
         >
-          {/* Top glass bar in fullscreen */}
-          {isFullscreen && (
-            <div className="pointer-events-none absolute left-0 right-0 top-0 z-50 p-2">
-              <div className="pointer-events-auto mx-auto max-w-screen-sm rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-md flex items-center justify-between">
-                <div>Progress: {progress.completedToday} / {progress.dailyTarget || '—'} today</div>
-                <button onClick={toggleFullscreen} className="rounded-md border border-white/20 px-2 py-1 text-xs text-white/90 hover:bg-white/10">Exit</button>
-              </div>
-            </div>
-          )}
-
           {/* Immersive viewer area */}
-          <div ref={viewRef} className={isFullscreen ? 'absolute inset-0 z-0' : 'relative z-0 w-full overflow-hidden rounded-lg bg-black h-[45dvh] sm:h-[50dvh] md:h-[60dvh] max-h-[70dvh]'}>
+          <div ref={viewRef} className={'relative z-0 w-full overflow-hidden rounded-lg bg-black h-[45dvh] sm:h-[50dvh] md:h-[60dvh] max-h-[70dvh]'}>
             <TransformWrapper
               limitToBounds
               centerOnInit
@@ -118,12 +106,12 @@ export default function TasksPage() {
               minScale={1}
               maxScale={5}
             >
-              <TransformComponent wrapperClass={isFullscreen ? 'h-full w-full' : 'h-full w-full'} contentClass="flex h-full w-full items-center justify-center">
+              <TransformComponent wrapperClass={'h-full w-full'} contentClass="flex h-full w-full items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={task.image.url}
                   alt="task image"
-                  className={isFullscreen ? 'max-h-full max-w-full select-none' : 'max-h-full max-w-full select-none'}
+                  className={'max-h-full max-w-full select-none'}
                   draggable={false}
                   onLoad={(e) => {
                     const { naturalWidth, naturalHeight } = e.currentTarget
@@ -159,36 +147,45 @@ export default function TasksPage() {
               </div>
             </>
           )}
-
-          {/* Fullscreen bottom glass controls */}
-          {isFullscreen && (
-            <div className="pointer-events-none absolute left-0 right-0 bottom-0 z-50 p-2 pb-3">
-              <div className="pointer-events-auto mx-auto max-w-screen-sm rounded-xl border border-white/10 bg-white/10 p-3 text-white backdrop-blur-md">
-                <div className="mb-2 text-center text-sm text-white/90">{task.image.question}</div>
-                <div className="flex items-center gap-3">
-                  <button
-                    disabled={answering}
-                    onClick={() => onAnswer(true)}
-                    className="flex-1 rounded-md bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
-                  >
-                    {answering ? <span className="inline-flex items-center gap-2"><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Submitting…</span> : 'Yes'}
-                  </button>
-                  <button
-                    disabled={answering}
-                    onClick={() => onAnswer(false)}
-                    className="flex-1 rounded-md border border-white/30 px-4 py-3 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-50"
-                  >
-                    {answering ? <span className="inline-flex items-center gap-2"><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Submitting…</span> : 'No'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-        {/* no native fullscreen classes needed */}
+
+        {/* Overlay portal for fullscreen */}
+        <TaskFullscreenOverlay
+          open={isFullscreen}
+          onClose={closeFullscreen}
+          progressText={`Progress: ${progress.completedToday} / ${progress.dailyTarget || '—'} today`}
+          question={task?.image?.question}
+          bottomActions={
+            <div className="flex items-center gap-3">
+              <button
+                disabled={answering}
+                onClick={() => onAnswer(true)}
+                className="flex-1 rounded-md bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {answering ? <span className="inline-flex items-center gap-2"><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Submitting…</span> : 'Yes'}
+              </button>
+              <button
+                disabled={answering}
+                onClick={() => onAnswer(false)}
+                className="flex-1 rounded-md border border-white/30 px-4 py-3 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-50"
+              >
+                {answering ? <span className="inline-flex items-center gap-2"><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Submitting…</span> : 'No'}
+              </button>
+            </div>
+          }
+        >
+          <div className="absolute inset-0">
+            <TransformWrapper limitToBounds centerOnInit doubleClick={{ disabled: false, step: 0.7 }} wheel={{ step: 0.15 }} pinch={{ step: 0.15 }} minScale={1} maxScale={5}>
+              <TransformComponent wrapperClass="h-full w-full" contentClass="flex h-full w-full items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={task.image.url} alt="task image" className="max-h-full max-w-full select-none" draggable={false} />
+              </TransformComponent>
+            </TransformWrapper>
+          </div>
+        </TaskFullscreenOverlay>
       </div>
     )
-  }, [loading, task, answering, transition, onAnswer, noneRemaining, progress.completedToday, progress.dailyTarget, isFullscreen, toggleFullscreen])
+  }, [loading, task, answering, transition, onAnswer, noneRemaining, progress.completedToday, progress.dailyTarget, isFullscreen, openFullscreen, closeFullscreen])
 
   return (
     <WorkerLayout>

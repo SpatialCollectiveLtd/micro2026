@@ -8,7 +8,8 @@ export async function GET(request) {
   const active = await getActiveUser(session)
   if (!active) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
   if (active?.conflict) return Response.json({ ok: false, conflict: true, error: 'Session conflict' }, { status: 409 })
-  const user = await prisma.user.findUnique({ where: { id: active.user.id }, select: { id: true, name: true, phone: true, role: true, settlementId: true } })
+  const user = await prisma.user.findUnique({ where: { id: active.user.id }, select: { id: true, name: true, phone: true, role: true, settlementId: true, active: true } })
+  if (!user?.active) return Response.json({ ok: false, error: 'Account suspended' }, { status: 403 })
 
   const start = new Date(); start.setHours(0,0,0,0)
   const end = new Date(); end.setHours(23,59,59,999)

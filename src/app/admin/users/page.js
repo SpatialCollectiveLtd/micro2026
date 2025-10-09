@@ -6,6 +6,7 @@ import { Table, THead, TR, TH, TD } from '@/components/ui/table'
 import Button from '@/components/ui/button'
 import Checkbox from '@/components/ui/checkbox'
 import Select from '@/components/ui/select'
+import ConfirmationModal from '@/components/ui/confirmation-modal'
 
 export default function UsersPage() {
   const [users, setUsers] = useState([])
@@ -19,6 +20,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState({ type: '', text: '' })
   const [importState, setImportState] = useState({ uploading: false, file: null, result: null, error: '' })
+  const [confirm, setConfirm] = useState({ open: false, action: null, user: null, loading: false })
 
   const loadData = useCallback(async (params = {}) => {
     const q = new URLSearchParams(params).toString()
@@ -136,17 +138,8 @@ export default function UsersPage() {
               <TD>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setEdit({ open: true, id: u.id, name: u.name || '', phone: u.phone, settlementId: u.settlement?.id || '' })}>Edit</Button>
-                  <Button variant="outline" onClick={async () => {
-                    const next = !u.active
-                    if (!next && !confirm('Suspend this user? They will not be able to access tasks.')) return
-                    await fetch(`/api/admin/users/${u.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: next }) })
-                    await loadData(filters)
-                  }}>{u.active ? 'Suspend' : 'Unsuspend'}</Button>
-                  <Button variant="outline" onClick={async () => {
-                    if (!confirm('Delete this user? This cannot be undone.')) return
-                    await fetch(`/api/admin/users/${u.id}`, { method: 'DELETE' })
-                    await loadData(filters)
-                  }}>Delete</Button>
+                  <Button variant="outline" onClick={() => setConfirm({ open: true, action: 'toggle-active', user: u, loading: false })}>{u.active ? 'Suspend' : 'Unsuspend'}</Button>
+                  <Button variant="outline" onClick={() => setConfirm({ open: true, action: 'delete', user: u, loading: false })}>Delete</Button>
                 </div>
               </TD>
             </TR>
@@ -306,6 +299,31 @@ John Admin,0799988877,,ADMIN,false</pre>
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        open={confirm.open}
+        title={confirm.action === 'delete' ? 'Delete user?' : (confirm.user?.active ? 'Suspend user?' : 'Unsuspend user?')}
+        message={confirm.action === 'delete' ? 'This action cannot be undone.' : (confirm.user?.active ? 'They will not be able to log in or access tasks.' : 'They will regain access to tasks and login.')}
+        confirmText={confirm.action === 'delete' ? 'Delete' : (confirm.user?.active ? 'Suspend' : 'Unsuspend')}
+        onCancel={() => setConfirm({ open: false, action: null, user: null, loading: false })}
+        loading={confirm.loading}
+        onConfirm={async () => {
+          if (!confirm.user) return
+          setConfirm((c) => ({ ...c, loading: true }))
+          try {
+            if (confirm.action === 'delete') {
+              await fetch(`/api/admin/users/${confirm.user.id}`, { method: 'DELETE' })
+            } else if (confirm.action === 'toggle-active') {
+              const next = !confirm.user.active
+              await fetch(`/api/admin/users/${confirm.user.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: next }) })
+            }
+            await loadData(filters)
+            setConfirm({ open: false, action: null, user: null, loading: false })
+          } catch {
+            setConfirm({ open: false, action: null, user: null, loading: false })
+          }
+        }}
+      />
     </div>
   )
 }

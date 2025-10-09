@@ -76,6 +76,7 @@ export default async function DashboardPage() {
   const active = await getActiveUser(session)
   if (!active) redirect('/login')
   if (active?.conflict) redirect('/session-conflict')
+  if (active?.suspended) redirect('/suspended')
   const userId = active.user.id
 
   const { user, completedToday, notices } = await getData(userId)

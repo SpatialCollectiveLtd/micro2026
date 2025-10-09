@@ -4,8 +4,9 @@ import prisma from '@/lib/prisma'
 // Returns: { user } on success; { conflict: true } if sid mismatch; null if no user
 export async function getActiveUser(session) {
   if (!session?.id) return null
-  const user = await prisma.user.findUnique({ where: { id: session.id }, select: { id: true, role: true, sessionId: true, settlementId: true, phone: true, name: true } })
+  const user = await prisma.user.findUnique({ where: { id: session.id }, select: { id: true, role: true, sessionId: true, settlementId: true, phone: true, name: true, active: true } })
   if (!user) return null
   if (user.sessionId && user.sessionId !== session.sid) return { conflict: true }
+  if (user.active === false) return { suspended: true }
   return { user }
 }

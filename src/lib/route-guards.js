@@ -14,9 +14,10 @@ export async function requireValidSession() {
   const session = await getSessionFromCookies()
   if (!session?.id) redirect('/login')
   // Validate against DB to enforce single active session
-  const user = await prisma.user.findUnique({ where: { id: session.id }, select: { sessionId: true, role: true } })
+  const user = await prisma.user.findUnique({ where: { id: session.id }, select: { sessionId: true, role: true, active: true } })
   if (!user) redirect('/login')
   if (user.sessionId && user.sessionId !== session.sid) redirect('/session-conflict')
+  if (user.active === false) redirect('/suspended')
   return { session, user }
 }
 

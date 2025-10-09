@@ -4,6 +4,9 @@ import { parseSessionCookie } from '@/lib/session'
 export async function POST(request) {
   const session = await parseSessionCookie(request)
   if (!session?.id) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+  // Block suspended users
+  const u = await prisma.user.findUnique({ where: { id: session.id }, select: { active: true } })
+  if (!u?.active) return Response.json({ ok: false, error: 'Account suspended' }, { status: 403 })
 
   let body
   try {

@@ -109,6 +109,7 @@ model Image {
   latitude  Float?
   longitude Float?
   active    Boolean  @default(true)
+  sequence  Int       @default(0)
   tasks     Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -91,11 +91,14 @@ export async function POST(request) {
 
   // Create images with optional EXIF GPS. Bounded concurrency per batch to limit load.
   const images = []
+  let sequence = 1
   for (const group of chunk(validUrls, 100)) {
     const created = await Promise.all(
       group.map(async (url) => {
         const { latitude: lat, longitude: lon } = await extractGpsFromUrl(url)
-        const data = hasGpsCols ? { url, question, campaignId: campaign.id, latitude: lat, longitude: lon } : { url, question, campaignId: campaign.id }
+        const data = hasGpsCols
+          ? { url, question, campaignId: campaign.id, latitude: lat, longitude: lon, sequence: sequence++ }
+          : { url, question, campaignId: campaign.id, sequence: sequence++ }
         return prisma.image.create({ data })
       })
     )
