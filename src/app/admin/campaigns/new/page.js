@@ -22,6 +22,17 @@ export default function NewCampaignPage() {
   const [originalCsvText, setOriginalCsvText] = useState('')
   const [showDupDialog, setShowDupDialog] = useState(false)
 
+  const resetForm = () => {
+    setTitle('')
+    setQuestion('')
+    setFile(null)
+    setSelected(new Set())
+    setDuplicates([])
+    setOriginalCsvText('')
+    setShowDupDialog(false)
+    setMsg({ type: '', text: '' })
+  }
+
   useEffect(() => {
     ;(async () => {
       const res = await fetch('/api/settlements')
@@ -61,14 +72,9 @@ export default function NewCampaignPage() {
         }
         return
       }
-      setMsg({ type: 'success', text: data.message || 'Campaign created successfully' })
-      // Reset minimal fields
-      setTitle('')
-      setQuestion('')
-      setFile(null)
-      setSelected(new Set())
-      setDuplicates([])
-      setShowDupDialog(false)
+  setMsg({ type: 'success', text: data.message || 'Campaign created successfully' })
+  // Reset form on success
+  resetForm()
     } catch (err) {
       setMsg({ type: 'error', text: 'Network error. Please try again.' })
     } finally {
@@ -102,14 +108,8 @@ export default function NewCampaignPage() {
         setMsg({ type: 'error', text: data?.error || 'Upload failed after de-dup' })
         return
       }
-      setMsg({ type: 'success', text: data.message || 'Campaign created (duplicates skipped).' })
-      setShowDupDialog(false)
-      setDuplicates([])
-      setFile(null)
-      setOriginalCsvText('')
-      setTitle('')
-      setQuestion('')
-      setSelected(new Set())
+  setMsg({ type: 'success', text: data.message || 'Campaign created (duplicates removed).' })
+  resetForm()
     } catch (e) {
       setMsg({ type: 'error', text: 'Failed to re-submit without duplicates.' })
     } finally {
@@ -185,7 +185,7 @@ export default function NewCampaignPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="max-h-[80vh] w-full max-w-2xl overflow-hidden rounded-xl border border-white/15 bg-white/90 p-6 shadow-2xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/80">
             <h2 className="text-lg font-semibold mb-2">Duplicate Image URLs Detected</h2>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">Review the duplicates below. You can skip duplicate lines and continue, or close this dialog and upload a corrected CSV.</p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">We found duplicate URL entries in your CSV. We keep the first occurrence and remove later duplicates. Choose "Remove Duplicates & Continue" to proceed now, or "Cancel Import" to discard this upload and submit a corrected CSV.</p>
             <div className="mb-4 max-h-56 overflow-auto rounded border border-neutral-200 dark:border-neutral-700 bg-white/60 dark:bg-neutral-800/40">
               <table className="w-full text-left text-xs">
                 <thead className="bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
@@ -207,8 +207,8 @@ export default function NewCampaignPage() {
               </table>
             </div>
             <div className="flex items-center justify-end gap-3">
-              <Button variant="outline" type="button" onClick={() => { setShowDupDialog(false) }}>Close</Button>
-              <Button type="button" onClick={onSkipDuplicates} disabled={loading}>{loading ? 'Processing…' : 'Skip Duplicates & Continue'}</Button>
+              <Button variant="outline" type="button" onClick={resetForm}>Cancel Import</Button>
+              <Button type="button" onClick={onSkipDuplicates} disabled={loading}>{loading ? 'Processing…' : 'Remove Duplicates & Continue'}</Button>
             </div>
           </div>
         </div>

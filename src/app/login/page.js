@@ -163,15 +163,6 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="mt-6 w-full max-w-3xl text-center px-4">
           <div className="text-sm text-neutral-300">Digital Public Works for Urban Resilience.</div>
-          <div className="mx-auto mt-3 w-full max-w-lg sm:max-w-xl rounded-xl border border-white/30 bg-white/90 p-1.5 sm:p-2 shadow-[0_6px_24px_-12px_rgba(0,0,0,0.35)] backdrop-blur-md backdrop-saturate-150">
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 scale-90 sm:scale-100">
-              <Image src="/logos/World Bank.jpg" alt="World Bank" width={72} height={26} className="object-contain" sizes="(max-width: 640px) 54px, 72px" />
-              <Image src="/logos/EU Logo.jpg" alt="EU" width={56} height={36} className="object-contain" sizes="(max-width: 640px) 44px, 56px" />
-              <Image src="/logos/GoK Coat of Arms.png" alt="Govt of Kenya" width={40} height={40} className="object-contain" sizes="(max-width: 640px) 32px, 40px" />
-              <Image src="/logos/KISIP-LOGO.png" alt="KISIP" width={66} height={26} className="object-contain" sizes="(max-width: 640px) 52px, 66px" />
-              <Image src="/logos/AFD logo.png" alt="AFD" width={60} height={26} className="object-contain" sizes="(max-width: 640px) 48px, 60px" />
-            </div>
-          </div>
         </div>
       </div>
     </div>

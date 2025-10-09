@@ -1,23 +1,26 @@
 "use client"
 import WorkerLayout from '@/app/(worker)/layout'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import TechLoader from '@/components/TechLoader'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import Skeleton from '@/components/Skeleton'
 
 export default function TasksPage() {
-  const [immersive, setImmersive] = useState(true)
   const [task, setTask] = useState(null)
   const [loading, setLoading] = useState(true)
   const [answering, setAnswering] = useState(false)
   const [transition, setTransition] = useState(false)
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 })
+  const [progress, setProgress] = useState({ completedToday: 0, dailyTarget: 0 })
+  const [noneRemaining, setNoneRemaining] = useState(false)
+  const viewRef = useRef(null)
 
   const fetchNext = useCallback(async () => {
     setLoading(true)
     const res = await fetch('/api/tasks/next')
     const json = await res.json()
     setTask(json.task)
+    setProgress(json.progress || { completedToday: 0, dailyTarget: 0 })
+    setNoneRemaining(Boolean(json.noneRemaining))
     setLoading(false)
   }, [])
 
@@ -58,81 +61,65 @@ export default function TasksPage() {
         </div>
       </div>
     )
-    if (!task) return <div className="p-6 text-sm text-neutral-500">All done for now. 🎉</div>
+    if (!task && noneRemaining) {
+      return (
+        <div className="grid place-items-center rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-xl backdrop-blur-md dark:border-neutral-800/60 dark:bg-neutral-900/60">
+          <div className="mb-2 text-2xl font-semibold">All tasks complete</div>
+          <div className="text-sm text-neutral-500">You’ve finished all available tasks for now. Check back later.</div>
+        </div>
+      )
+    }
+    if (!task) return <div className="p-6 text-sm text-neutral-500">Loading next task…</div>
     return (
       <div className={`transition-transform duration-300 ${transition ? '-translate-x-8 opacity-0' : 'translate-x-0 opacity-100'}`}>
-        {/* View toggle */}
+        {/* Progress + Fullscreen */}
         <div className="mb-3 flex items-center justify-between">
-          <div className="text-sm font-medium">View</div>
-          <div className="inline-flex rounded-md border border-neutral-200 p-1 text-sm dark:border-neutral-800">
-            <button
-              className={`rounded px-3 py-1 ${immersive ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : ''}`}
-              onClick={() => setImmersive(true)}
-            >
-              Immersive
-            </button>
-            <button
-              className={`rounded px-3 py-1 ${!immersive ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : ''}`}
-              onClick={() => setImmersive(false)}
-            >
-              Focused
-            </button>
-          </div>
+          <div className="text-sm font-medium">Progress: {progress.completedToday} / {progress.dailyTarget || '—'} today</div>
+          <button
+            className="rounded-md border border-neutral-200 px-3 py-1.5 text-sm dark:border-neutral-800"
+            onClick={() => {
+              const el = viewRef.current
+              if (!el) return
+              if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {})
+              } else {
+                el.requestFullscreen?.().catch(() => {})
+              }
+            }}
+          >
+            Fullscreen
+          </button>
         </div>
 
         {/* Viewer area */}
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950 pb-6">
-          {immersive ? (
-            // Immersive: bounded zoom & pan (constrained container)
-            <div className="relative z-0 w-full overflow-hidden rounded-lg bg-black h-[45dvh] sm:h-[50dvh] md:h-[60dvh] max-h-[70dvh]">
-              <TransformWrapper
-                limitToBounds
-                centerOnInit
-                doubleClick={{ disabled: false, step: 0.7 }}
-                wheel={{ step: 0.15 }}
-                pinch={{ step: 0.15 }}
-                minScale={1}
-                maxScale={5}
-              >
-                <TransformComponent wrapperClass="h-full w-full" contentClass="flex h-full w-full items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={task.image.url}
-                    alt="task image"
-                    className="max-h-full max-w-full select-none"
-                    draggable={false}
-                    onLoad={(e) => {
-                      const { naturalWidth, naturalHeight } = e.currentTarget
-                      if (naturalWidth && naturalHeight) setImgSize({ w: naturalWidth, h: naturalHeight })
-                    }}
-                    onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }}
-                  />
-                </TransformComponent>
-              </TransformWrapper>
-            </div>
-          ) : (
-            // Focused: container adapts to image aspect ratio with a sensible max height
-            <div
-              className="relative z-0 grid w-full place-items-center overflow-hidden rounded-lg bg-black"
-              style={{
-                aspectRatio: imgSize.w && imgSize.h ? `${imgSize.w} / ${imgSize.h}` : undefined,
-                maxHeight: '70dvh',
-              }}
+          {/* Immersive-only: bounded zoom & pan (constrained container) */}
+          <div ref={viewRef} className="relative z-0 w-full overflow-hidden rounded-lg bg-black h-[45dvh] sm:h-[50dvh] md:h-[60dvh] max-h-[70dvh]">
+            <TransformWrapper
+              limitToBounds
+              centerOnInit
+              doubleClick={{ disabled: false, step: 0.7 }}
+              wheel={{ step: 0.15 }}
+              pinch={{ step: 0.15 }}
+              minScale={1}
+              maxScale={5}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={task.image.url}
-                alt="task image"
-                className="h-full w-full select-none object-contain"
-                draggable={false}
-                onLoad={(e) => {
-                  const { naturalWidth, naturalHeight } = e.currentTarget
-                  if (naturalWidth && naturalHeight) setImgSize({ w: naturalWidth, h: naturalHeight })
-                }}
-                onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }}
-              />
-            </div>
-          )}
+              <TransformComponent wrapperClass="h-full w-full" contentClass="flex h-full w-full items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={task.image.url}
+                  alt="task image"
+                  className="max-h-full max-w-full select-none"
+                  draggable={false}
+                  onLoad={(e) => {
+                    const { naturalWidth, naturalHeight } = e.currentTarget
+                    if (naturalWidth && naturalHeight) setImgSize({ w: naturalWidth, h: naturalHeight })
+                  }}
+                  onError={(e) => { e.currentTarget.style.display='none'; const holder=document.createElement('div'); holder.className='flex h-full w-full items-center justify-center text-sm text-red-300'; holder.textContent='The image cannot be loaded'; e.currentTarget.parentElement?.appendChild(holder) }}
+                />
+              </TransformComponent>
+            </TransformWrapper>
+          </div>
 
           {/* Question */}
           <div className="relative z-10 mt-4 rounded-lg border border-neutral-200 bg-white p-3 text-base shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
