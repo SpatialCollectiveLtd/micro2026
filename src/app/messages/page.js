@@ -36,11 +36,11 @@ export default async function MessagesPage() {
   return (
     <WorkerLayout>
       <div className="space-y-4">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+        <div className="sticky top-0 z-10 rounded-xl border border-neutral-200 bg-white/80 p-4 shadow-sm backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-950/80">
           <div className="text-lg font-semibold">Messages</div>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-0 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-          <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          <ul className="max-h-[70dvh] overflow-auto divide-y divide-neutral-200 dark:divide-neutral-800">
             {notices.length === 0 && (
               <li className="p-4 text-sm text-neutral-500 dark:text-neutral-400">No messages</li>
             )}
