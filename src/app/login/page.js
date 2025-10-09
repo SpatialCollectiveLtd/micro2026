@@ -89,8 +89,8 @@ export default function LoginPage() {
       {/* background glow */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_300px_at_50%_-10%,rgba(239,68,68,0.25),transparent_60%)]" />
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-        {/* Glassmorphism card */}
-        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_50px_-10px_rgba(0,0,0,0.5)] backdrop-blur-md">
+  {/* Glassmorphism card */}
+  <div className={`w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_50px_-10px_rgba(0,0,0,0.5)] backdrop-blur-md transition-opacity ${loading ? 'opacity-30' : ''}`}>
           <div className="mb-6 text-center">
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-white/10">
               <Image src="/logos/spatial logo.jpg" alt="Spatial Collective" width={40} height={40} className="rounded-full object-cover" />
@@ -148,33 +148,80 @@ export default function LoginPage() {
         </div>
 
         {loading && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-neutral-950">
-            {/* Animated gradient backdrop */}
-            <div className="pointer-events-none absolute inset-0 opacity-60" style={{ background: 'radial-gradient(800px 400px at 50% -10%, rgba(239,68,68,0.25), transparent 60%), radial-gradient(600px 300px at 20% 110%, rgba(59,130,246,0.18), transparent 60%), radial-gradient(700px 350px at 80% 120%, rgba(34,197,94,0.18), transparent 60%)', filter: 'saturate(1.2)' }} />
-            <div className="relative flex flex-col items-center">
-              {/* Central orb */}
-              <div className="relative h-40 w-40 sm:h-48 sm:w-48">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-500 via-rose-400 to-orange-300 blur-[2px]" style={{ boxShadow: '0 0 80px 20px rgba(239,68,68,0.25)' }} />
-                <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-red-400/80 via-white/10 to-transparent backdrop-blur-[2px]" />
-                {/* Rotating ring */}
-                <div className="absolute inset-0 grid place-items-center">
-                  <div className="h-[92%] w-[92%] rounded-full border-2 border-white/20 [animation:spin_3.5s_linear_infinite]" style={{ boxShadow: 'inset 0 0 30px rgba(255,255,255,0.1)' }} />
-                </div>
-                {/* Dots on the orbit */}
-                <div className="absolute inset-0 grid place-items-center">
-                  <div className="relative h-[92%] w-[92%]">
-                    <span className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
-                    <span className="absolute top-1/2 -right-1 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-white/60 shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 text-sm text-neutral-300">Signing you in…</div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950">
+            {/* Mapping the Path: minimal SVG animation */}
+            <div className="relative w-[360px] sm:w-[480px]">
+              <svg viewBox="0 0 360 240" className="h-auto w-full" aria-label="Connecting data points animation" role="img">
+                {/* Background dots: faint, semi-random positions */}
+                <g fill="white" fillOpacity="0.12">
+                  <circle cx="28" cy="30" r="2" className="dot" />
+                  <circle cx="90" cy="18" r="1.5" className="dot" />
+                  <circle cx="150" cy="34" r="1.8" className="dot delay-1" />
+                  <circle cx="210" cy="26" r="1.6" className="dot" />
+                  <circle cx="300" cy="40" r="2" className="dot delay-2" />
+                  <circle cx="40" cy="90" r="2" className="dot" />
+                  <circle cx="110" cy="110" r="1.6" className="dot delay-3" />
+                  <circle cx="180" cy="80" r="1.8" className="dot" />
+                  <circle cx="250" cy="100" r="1.6" className="dot delay-2" />
+                  <circle cx="320" cy="88" r="2" className="dot" />
+                  <circle cx="70" cy="160" r="2" className="dot delay-1" />
+                  <circle cx="140" cy="170" r="1.8" className="dot" />
+                  <circle cx="200" cy="150" r="1.6" className="dot delay-3" />
+                  <circle cx="270" cy="170" r="2" className="dot" />
+                  <circle cx="330" cy="200" r="1.8" className="dot delay-2" />
+                  <circle cx="40" cy="210" r="1.6" className="dot" />
+                </g>
+
+                {/* Guide path for motion (invisible) */}
+                <path id="guide" d="M 40 190 C 100 120, 160 210, 220 140 S 330 60, 300 50" fill="none" stroke="none" pathLength="100" />
+                {/* Visible trace path with glow trail */}
+                <path id="trace-path" d="M 40 190 C 100 120, 160 210, 220 140 S 330 60, 300 50" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="2.5" strokeLinecap="round" pathLength="100" className="trace" />
+
+                {/* Tracer pulse moving along the path */}
+                <g>
+                  <circle r="4" fill="#fff" filter="url(#glow)">
+                    <animateMotion dur="4s" repeatCount="indefinite">
+                      <mpath href="#guide" />
+                    </animateMotion>
+                  </circle>
+                </g>
+
+                {/* Soft glow filter */}
+                <defs>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="2.2" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+              </svg>
+              <div className="mt-4 text-center text-sm text-neutral-300">Signing you in…</div>
             </div>
             <style jsx>{`
-              @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+              /* Draw the path as a gentle loop */
+              .trace {
+                stroke-dasharray: 100 100;
+                animation: draw 4s ease-in-out infinite;
+              }
+              @keyframes draw {
+                0% { stroke-dashoffset: 100; opacity: 0.7; }
+                40% { opacity: 1; }
+                60% { opacity: 1; }
+                100% { stroke-dashoffset: 0; opacity: 0.8; }
+              }
+              /* Subtle random dot glow */
+              .dot { animation: dotGlow 3.6s ease-in-out infinite alternate; }
+              .delay-1 { animation-delay: .4s }
+              .delay-2 { animation-delay: .9s }
+              .delay-3 { animation-delay: 1.3s }
+              @keyframes dotGlow {
+                from { opacity: 0.12; }
+                to { opacity: 0.28; }
+              }
               @media (prefers-reduced-motion: reduce) {
-                div[style*='spin_3.5s'] { animation: none !important; }
-                .pointer-events-none { opacity: 0.3; filter: none; }
+                .trace, .dot { animation: none !important; }
               }
             `}</style>
           </div>

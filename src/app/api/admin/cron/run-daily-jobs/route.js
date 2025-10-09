@@ -118,5 +118,11 @@ export async function POST(request) {
   }
   if (reportJobs.length) await prisma.$transaction(reportJobs)
 
+  // Housekeeping: delete activity logs older than 24 hours
+  try {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    await prisma.activityLog.deleteMany({ where: { createdAt: { lt: cutoff } } })
+  } catch {}
+
   return Response.json({ ok: true, updatedImages: updates.length, userReports: reportJobs.length })
 }

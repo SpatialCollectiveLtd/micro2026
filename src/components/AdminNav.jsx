@@ -10,6 +10,7 @@ const links = [
   { href: '/admin/flagged', label: 'Flagged Images' },
   { href: '/admin/activity', label: 'Activity' },
   { href: '/admin/payments', label: 'Payments' },
+  { href: '/admin/change-requests', label: 'Change Requests' },
 ]
 
 export default function AdminNav() {
