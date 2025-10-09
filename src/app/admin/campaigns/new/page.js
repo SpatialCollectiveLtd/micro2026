@@ -185,7 +185,7 @@ export default function NewCampaignPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="max-h-[80vh] w-full max-w-2xl overflow-hidden rounded-xl border border-white/15 bg-white/90 p-6 shadow-2xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/80">
             <h2 className="text-lg font-semibold mb-2">Duplicate Image URLs Detected</h2>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">We found duplicate URL entries in your CSV. We keep the first occurrence and remove later duplicates. Choose "Remove Duplicates & Continue" to proceed now, or "Cancel Import" to discard this upload and submit a corrected CSV.</p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">We found duplicate URL entries in your CSV. We keep the first occurrence and remove later duplicates. Choose &quot;Remove Duplicates &amp; Continue&quot; to proceed now, or &quot;Cancel Import&quot; to discard this upload and submit a corrected CSV.</p>
             <div className="mb-4 max-h-56 overflow-auto rounded border border-neutral-200 dark:border-neutral-700 bg-white/60 dark:bg-neutral-800/40">
               <table className="w-full text-left text-xs">
                 <thead className="bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
