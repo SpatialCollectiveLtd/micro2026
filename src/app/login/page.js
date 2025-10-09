@@ -2,8 +2,6 @@
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import Select from '@/components/ui/select'
-import TechLoader from '@/components/TechLoader'
-import Skeleton from '@/components/Skeleton'
 
 export const dynamic = 'force-dynamic'
 
@@ -143,20 +141,30 @@ export default function LoginPage() {
 
         {loading && (
           <div className="fixed inset-0 z-50 grid place-items-center bg-neutral-950">
-            <div className="w-full max-w-6xl px-4">
-              <div className="mb-6 grid gap-4 sm:grid-cols-3">
-                <Skeleton className="h-32 rounded-2xl" />
-                <Skeleton className="h-32 rounded-2xl" />
-                <Skeleton className="h-32 rounded-2xl" />
+            {/* Animated gradient backdrop */}
+            <div className="pointer-events-none absolute inset-0 opacity-60" style={{ background: 'radial-gradient(800px 400px at 50% -10%, rgba(239,68,68,0.25), transparent 60%), radial-gradient(600px 300px at 20% 110%, rgba(59,130,246,0.18), transparent 60%), radial-gradient(700px 350px at 80% 120%, rgba(34,197,94,0.18), transparent 60%)', filter: 'saturate(1.2)' }} />
+            <div className="relative flex flex-col items-center">
+              {/* Central orb */}
+              <div className="relative h-40 w-40 sm:h-48 sm:w-48">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-500 via-rose-400 to-orange-300 blur-[2px]" style={{ boxShadow: '0 0 80px 20px rgba(239,68,68,0.25)' }} />
+                <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-red-400/80 via-white/10 to-transparent backdrop-blur-[2px]" />
+                {/* Rotating ring */}
+                <div className="absolute inset-0 grid place-items-center">
+                  <div className="h-[92%] w-[92%] rounded-full border-2 border-white/20 [animation:spin_3.5s_linear_infinite]" style={{ boxShadow: 'inset 0 0 30px rgba(255,255,255,0.1)' }} />
+                </div>
+                {/* Dots on the orbit */}
+                <div className="absolute inset-0 grid place-items-center">
+                  <div className="relative h-[92%] w-[92%]">
+                    <span className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
+                    <span className="absolute top-1/2 -right-1 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-white/60 shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Skeleton className="h-56 rounded-2xl" />
-                <Skeleton className="h-56 rounded-2xl" />
-              </div>
-              <div className="mt-8 flex items-center justify-center">
-                <TechLoader label="Signing you in…" />
-              </div>
+              <div className="mt-6 text-sm text-neutral-300">Signing you in…</div>
             </div>
+            <style jsx>{`
+              @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+            `}</style>
           </div>
         )}
 
