@@ -19,6 +19,7 @@
     "db:ensure:activity": "node scripts/db-ensure-activity-and-timing.js",
   "db:ensure:image-gps": "node scripts/db-ensure-image-gps.js",
   "db:ensure:image-sequence": "node scripts/db-ensure-image-sequence.js",
+  "db:backfill:image-sequence": "node scripts/db-backfill-image-sequence.js",
   "db:ensure:session-settings": "node scripts/db-ensure-session-and-settings.js",
   "db:ensure:change-requests": "node scripts/db-ensure-change-requests.js",
     "repo:update": "node scripts/auto-commit.js"
