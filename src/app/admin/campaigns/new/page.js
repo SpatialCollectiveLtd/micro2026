@@ -18,6 +18,9 @@ export default function NewCampaignPage() {
   const [file, setFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState({ type: '', text: '' })
+  const [duplicates, setDuplicates] = useState([])
+  const [originalCsvText, setOriginalCsvText] = useState('')
+  const [showDupDialog, setShowDupDialog] = useState(false)
 
   useEffect(() => {
     ;(async () => {
@@ -38,16 +41,24 @@ export default function NewCampaignPage() {
     }
     setLoading(true)
     try {
+      const text = await file.text()
+      setOriginalCsvText(text)
       const form = new FormData()
       form.append('title', title.trim())
       form.append('question', question.trim())
-      form.append('file', file)
+      form.append('file', new File([text], file.name, { type: file.type || 'text/csv' }))
       for (const id of selected) form.append('settlements', id)
 
       const res = await fetch('/api/admin/campaigns', { method: 'POST', body: form })
       const data = await res.json().catch(() => ({ ok: false, error: 'Unexpected server response' }))
       if (!res.ok || data?.ok === false) {
-        setMsg({ type: 'error', text: data?.error || 'Upload failed' })
+        if (res.status === 409 && data?.duplicates?.length) {
+          setDuplicates(data.duplicates)
+            setShowDupDialog(true)
+            setMsg({ type: 'error', text: 'Duplicate URLs detected. Review below.' })
+        } else {
+          setMsg({ type: 'error', text: data?.error || 'Upload failed' })
+        }
         return
       }
       setMsg({ type: 'success', text: data.message || 'Campaign created successfully' })
@@ -56,8 +67,51 @@ export default function NewCampaignPage() {
       setQuestion('')
       setFile(null)
       setSelected(new Set())
+      setDuplicates([])
+      setShowDupDialog(false)
     } catch (err) {
       setMsg({ type: 'error', text: 'Network error. Please try again.' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onSkipDuplicates = async () => {
+    if (!originalCsvText) return
+    setLoading(true)
+    setMsg({ type: '', text: '' })
+    try {
+      // Build filtered CSV excluding duplicateIndex lines (keep first occurrences).
+      const dupIdx = new Set(duplicates.map(d => d.duplicateIndex))
+      const lines = originalCsvText.split(/\r?\n/)
+      const filtered = lines.filter((_, idx) => !dupIdx.has(idx) && _.trim())
+      if (!filtered.length) {
+        setMsg({ type: 'error', text: 'All lines were duplicates—please upload a corrected CSV.' })
+        return
+      }
+      const blob = new Blob([filtered.join('\n')], { type: 'text/csv' })
+      const patchedFile = new File([blob], (file?.name || 'images.csv').replace(/\.csv$/i,'') + '_dedup.csv', { type: 'text/csv' })
+      const form = new FormData()
+      form.append('title', title.trim())
+      form.append('question', question.trim())
+      form.append('file', patchedFile)
+      for (const id of selected) form.append('settlements', id)
+      const res = await fetch('/api/admin/campaigns', { method: 'POST', body: form })
+      const data = await res.json().catch(() => ({ ok: false, error: 'Unexpected server response' }))
+      if (!res.ok || data?.ok === false) {
+        setMsg({ type: 'error', text: data?.error || 'Upload failed after de-dup' })
+        return
+      }
+      setMsg({ type: 'success', text: data.message || 'Campaign created (duplicates skipped).' })
+      setShowDupDialog(false)
+      setDuplicates([])
+      setFile(null)
+      setOriginalCsvText('')
+      setTitle('')
+      setQuestion('')
+      setSelected(new Set())
+    } catch (e) {
+      setMsg({ type: 'error', text: 'Failed to re-submit without duplicates.' })
     } finally {
       setLoading(false)
     }
@@ -126,6 +180,39 @@ export default function NewCampaignPage() {
           <Button type="submit" disabled={!valid}>{loading ? 'Creating…' : 'Create Campaign'}</Button>
         </div>
       </form>
+
+      {showDupDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="max-h-[80vh] w-full max-w-2xl overflow-hidden rounded-xl border border-white/15 bg-white/90 p-6 shadow-2xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/80">
+            <h2 className="text-lg font-semibold mb-2">Duplicate Image URLs Detected</h2>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">Review the duplicates below. You can skip duplicate lines and continue, or close this dialog and upload a corrected CSV.</p>
+            <div className="mb-4 max-h-56 overflow-auto rounded border border-neutral-200 dark:border-neutral-700 bg-white/60 dark:bg-neutral-800/40">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                  <tr>
+                    <th className="px-2 py-1">First Line</th>
+                    <th className="px-2 py-1">Dup Line</th>
+                    <th className="px-2 py-1">URL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {duplicates.map(d => (
+                    <tr key={d.url + d.duplicateIndex} className="border-t border-neutral-200 dark:border-neutral-700">
+                      <td className="px-2 py-1 font-mono">{d.firstIndex + 1}</td>
+                      <td className="px-2 py-1 font-mono text-red-600 dark:text-red-400">{d.duplicateIndex + 1}</td>
+                      <td className="px-2 py-1 break-all">{d.url}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              <Button variant="outline" type="button" onClick={() => { setShowDupDialog(false) }}>Close</Button>
+              <Button type="button" onClick={onSkipDuplicates} disabled={loading}>{loading ? 'Processing…' : 'Skip Duplicates & Continue'}</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

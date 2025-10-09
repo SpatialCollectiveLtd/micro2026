@@ -37,27 +37,35 @@ export async function POST(request) {
   if (lines.length > MAX_LINES) {
     return Response.json({ ok: false, error: `CSV too large. Max ${MAX_LINES} URLs per upload.` }, { status: 400 })
   }
-  // Validate URLs and dedupe
-  const urlSet = new Set()
+  // Validate URLs and collect duplicates (preserve order of first occurrence)
+  const seen = new Map() // url -> firstIndex
   const validUrls = []
+  const duplicates = []
   let invalidCount = 0
-  for (const raw of lines) {
+  lines.forEach((raw, idx) => {
     try {
       const u = new URL(raw)
       const normalized = u.toString()
-      if (!urlSet.has(normalized)) {
-        urlSet.add(normalized)
+      if (seen.has(normalized)) {
+        duplicates.push({ url: normalized, firstIndex: seen.get(normalized), duplicateIndex: idx })
+      } else {
+        seen.set(normalized, idx)
         validUrls.push(normalized)
       }
     } catch {
       invalidCount++
     }
-  }
+  })
   if (validUrls.length === 0) {
-    return Response.json({ ok: false, error: 'No valid URLs found in CSV' }, { status: 400 })
+    return Response.json({ ok: false, error: 'No valid URLs found in CSV', duplicates, invalid: invalidCount }, { status: 400 })
   }
 
   // Create campaign, images, settlement links, and tasks for users in selected settlements
+  // If duplicates detected, short‑circuit to let admin decide (skip creating campaign now)
+  if (duplicates.length) {
+    return Response.json({ ok: false, error: 'Duplicate image URLs detected', duplicates, invalid: invalidCount }, { status: 409 })
+  }
+
   const campaign = await prisma.campaign.create({ data: { title, question, active: true } })
 
   // Helper to chunk arrays
@@ -115,9 +123,9 @@ export async function POST(request) {
   }
   // Batch insert tasks using createMany in chunks to avoid timeouts
   for (const group of chunk(rows, 1000)) {
-    await prisma.task.createMany({ data: group })
+    await prisma.task.createMany({ data: group, skipDuplicates: true })
   }
 
   const message = `Campaign created with ${images.length} valid images.${invalidCount ? ` ${invalidCount} invalid URL(s) were skipped.` : ''}`
-  return Response.json({ ok: true, campaignId: campaign.id, images: images.length, invalid: invalidCount, message })
+  return Response.json({ ok: true, campaignId: campaign.id, images: images.length, invalid: invalidCount, message, duplicates: [] })
 }

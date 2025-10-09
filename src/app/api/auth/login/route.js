@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma'
 import { createSessionCookie } from '@/lib/session'
 import { NextResponse } from 'next/server'
+import crypto from 'node:crypto'
+import { getWorkingHours, isNowWithinWindow } from '@/lib/settings'
 
 function badRequest(message) {
   return Response.json({ ok: false, error: message }, { status: 400 })
@@ -28,12 +30,14 @@ export async function POST(request) {
   if (!settlementId) return badRequest('Settlement is required')
 
   try {
+    // Check working hours for workers (admins bypass)
+    const { start, end } = await getWorkingHours()
     const user = await prisma.user.findFirst({
       where: {
         phone,
         OR: [
-          { settlementId }, // worker login
-          { role: 'ADMIN', settlementId: null }, // admin can login without settlement
+          { settlementId }, // worker login must match settlement
+          { role: 'ADMIN', settlementId: null }, // admin flexibility
         ],
       },
       select: { id: true, role: true, settlementId: true },
@@ -43,7 +47,15 @@ export async function POST(request) {
       return Response.json({ ok: false, error: 'Invalid phone number or settlement' }, { status: 401 })
     }
 
-  const cookie = await createSessionCookie({ id: user.id, role: user.role, sid: crypto.randomUUID() })
+    if (user.role !== 'ADMIN' && !isNowWithinWindow(start, end)) {
+      return Response.json({ ok: false, error: `Work is currently available only between ${start || 'start'} and ${end || 'end'}.` }, { status: 403 })
+    }
+
+  // Generate a new sessionId and persist on user to invalidate any prior session
+  const newSessionId = crypto.randomUUID()
+  await prisma.user.update({ where: { id: user.id }, data: { sessionId: newSessionId } })
+
+  const cookie = await createSessionCookie({ id: user.id, role: user.role, sid: newSessionId })
   try { await prisma.activityLog.create({ data: { userId: user.id, type: 'LOGIN' } }) } catch {}
   const redirectTo = user.role === 'ADMIN' ? '/admin/campaigns' : '/dashboard'
   const res = NextResponse.redirect(new URL(redirectTo, request.url), 303)

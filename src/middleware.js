@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { parseSessionCookie } from '@/lib/session'
+import prisma from '@/lib/prisma'
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl
@@ -19,13 +20,27 @@ export async function middleware(request) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Parse role for admin routes
-  if (isAdminRoute) {
-    if (session.role !== 'ADMIN') {
-      const loginUrl = new URL('/login', request.url)
-      return NextResponse.redirect(loginUrl)
+  // Enforce single active session: verify DB sessionId matches cookie sid
+  try {
+    const user = await prisma.user.findUnique({ where: { id: session.id }, select: { sessionId: true, role: true } })
+    if (!user || (user.sessionId && user.sessionId !== session.sid)) {
+      const res = NextResponse.redirect(new URL('/login', request.url))
+      res.headers.append('set-cookie', 'mt_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
+      return res
     }
+    // Optional: tighten role consistency
+    if (isAdminRoute && user.role !== 'ADMIN') {
+      const res = NextResponse.redirect(new URL('/login', request.url))
+      res.headers.append('set-cookie', 'mt_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
+      return res
+    }
+  } catch {
+    const res = NextResponse.redirect(new URL('/login', request.url))
+    res.headers.append('set-cookie', 'mt_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
+    return res
   }
+
+  // (Admin route role check handled above with DB consistency validation.)
 
   return NextResponse.next()
 }
