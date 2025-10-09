@@ -24,6 +24,7 @@ model User {
   responses    Response[]
   reports      DailyReport[]
   notices      Notice[]
+  changeRequests ChangeRequest[]
   active       Boolean     @default(true)
   sessionId    String?     @unique
   createdAt    DateTime    @default(now())
