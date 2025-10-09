@@ -180,7 +180,7 @@ export default function LoginPage() {
                 {/* Tracer pulse moving along the path */}
                 <g>
                   <circle r="4" fill="#fff" filter="url(#glow)">
-                    <animateMotion dur="4s" repeatCount="indefinite">
+                    <animateMotion dur="2.8s" repeatCount="indefinite">
                       <mpath href="#guide" />
                     </animateMotion>
                   </circle>
@@ -203,16 +203,16 @@ export default function LoginPage() {
               /* Draw the path as a gentle loop */
               .trace {
                 stroke-dasharray: 100 100;
-                animation: draw 4s ease-in-out infinite;
+                animation: draw 2.8s ease-in-out infinite;
               }
               @keyframes draw {
                 0% { stroke-dashoffset: 100; opacity: 0.7; }
-                40% { opacity: 1; }
-                60% { opacity: 1; }
+                30% { opacity: 1; }
+                70% { opacity: 1; }
                 100% { stroke-dashoffset: 0; opacity: 0.8; }
               }
               /* Subtle random dot glow */
-              .dot { animation: dotGlow 3.6s ease-in-out infinite alternate; }
+              .dot { animation: dotGlow 2.4s ease-in-out infinite alternate; }
               .delay-1 { animation-delay: .4s }
               .delay-2 { animation-delay: .9s }
               .delay-3 { animation-delay: 1.3s }
