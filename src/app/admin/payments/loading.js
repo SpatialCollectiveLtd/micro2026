@@ -37,3 +37,4 @@ export default function Loading() {
     </div>
   )
 }
+// Reduced motion respected via Skeleton component global style.

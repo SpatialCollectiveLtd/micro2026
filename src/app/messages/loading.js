@@ -24,3 +24,4 @@ export default function Loading() {
     </WorkerLayout>
   )
 }
+// Accessibility: reduce motion backdrop if user prefers reduced motion is handled by Skeleton component global style.

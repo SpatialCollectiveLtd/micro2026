@@ -20,3 +20,4 @@ export default function Loading() {
     </WorkerLayout>
   )
 }
+// Reduced motion respected via Skeleton component global style.

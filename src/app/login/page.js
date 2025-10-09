@@ -164,6 +164,10 @@ export default function LoginPage() {
             </div>
             <style jsx>{`
               @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+              @media (prefers-reduced-motion: reduce) {
+                div[style*='spin_3.5s'] { animation: none !important; }
+                .pointer-events-none { opacity: 0.3; filter: none; }
+              }
             `}</style>
           </div>
         )}
