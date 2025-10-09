@@ -18,6 +18,7 @@
     "db:ensure:image-status": "node scripts/db-ensure-image-status.js",
     "db:ensure:activity": "node scripts/db-ensure-activity-and-timing.js",
     "db:ensure:image-gps": "node scripts/db-ensure-image-gps.js",
+  "db:ensure:session-settings": "node scripts/db-ensure-session-and-settings.js",
     "repo:update": "node scripts/auto-commit.js"
   },
   "dependencies": {
