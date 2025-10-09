@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { parseSessionCookie } from '@/lib/session'
-import prisma from '@/lib/prisma'
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl
@@ -20,20 +19,9 @@ export async function middleware(request) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Enforce single active session: verify DB sessionId matches cookie sid
-  try {
-    const user = await prisma.user.findUnique({ where: { id: session.id }, select: { sessionId: true, role: true } })
-    if (!user || (user.sessionId && user.sessionId !== session.sid)) {
-      // Redirect to session conflict page and keep the cookie so the user can resolve it
-      return NextResponse.redirect(new URL('/session-conflict', request.url))
-    }
-    // Optional: tighten role consistency
-    if (isAdminRoute && user.role !== 'ADMIN') {
-      // Not an admin trying to access admin route: send to dashboard without clearing session
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-  } catch {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // Do not call the database from middleware (Edge runtime). Trust sealed cookie for role gating.
+  if (isAdminRoute && session.role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   // (Admin route role check handled above with DB consistency validation.)
@@ -42,5 +30,6 @@ export async function middleware(request) {
 }
 
 export const config = {
+  // Do not include /session-conflict to avoid loops
   matcher: ['/dashboard/:path*', '/tasks/:path*', '/profile/:path*', '/messages/:path*', '/admin/:path*'],
 }
