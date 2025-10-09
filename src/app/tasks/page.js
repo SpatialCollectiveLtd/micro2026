@@ -14,58 +14,8 @@ export default function TasksPage() {
   const [noneRemaining, setNoneRemaining] = useState(false)
   const viewRef = useRef(null)
   const containerRef = useRef(null)
-
-  // Cross-browser fullscreen with graceful fallback (pseudo fullscreen)
-  function useFullscreen(ref) {
-    const [isFs, setIsFs] = useState(false)
-    useEffect(() => {
-      function onChange() {
-        const active = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement)
-        setIsFs(active)
-      }
-      document.addEventListener('fullscreenchange', onChange)
-      document.addEventListener('webkitfullscreenchange', onChange)
-      document.addEventListener('MSFullscreenChange', onChange)
-      return () => {
-        document.removeEventListener('fullscreenchange', onChange)
-        document.removeEventListener('webkitfullscreenchange', onChange)
-        document.removeEventListener('MSFullscreenChange', onChange)
-      }
-    }, [])
-    const enter = useCallback(async () => {
-      const el = ref.current
-      if (!el) return
-      try {
-        if (el.requestFullscreen) await el.requestFullscreen()
-        else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen()
-        else if (el.msRequestFullscreen) await el.msRequestFullscreen()
-        else throw new Error('no fs')
-      } catch {
-        // pseudo fullscreen fallback
-        el.classList.add('pseudo-fs')
-        document.documentElement.classList.add('no-scroll')
-        setIsFs(true)
-      }
-    }, [ref])
-    const exit = useCallback(async () => {
-      try {
-        if (document.exitFullscreen) await document.exitFullscreen()
-        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen()
-        else if (document.msExitFullscreen) await document.msExitFullscreen()
-      } catch {}
-      const el = ref.current
-      if (el) el.classList.remove('pseudo-fs')
-      document.documentElement.classList.remove('no-scroll')
-      setIsFs(false)
-    }, [ref])
-    const toggle = useCallback(() => {
-      if (isFs || document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) exit()
-      else enter()
-    }, [isFs, enter, exit])
-    return { isFullscreen: isFs, enter, exit, toggle }
-  }
-
-  const fs = useFullscreen(containerRef)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const toggleFullscreen = useCallback(() => setIsFullscreen((v) => !v), [])
 
   const fetchNext = useCallback(async () => {
     setLoading(true)
@@ -126,12 +76,12 @@ export default function TasksPage() {
     return (
       <div className={`transition-transform duration-300 ${transition ? '-translate-x-8 opacity-0' : 'translate-x-0 opacity-100'}`}>
         {/* Progress + Fullscreen (non-fullscreen header) */}
-        {!fs.isFullscreen && (
+        {!isFullscreen && (
           <div className="mb-3 flex items-center justify-between">
             <div className="text-sm font-medium">Progress: {progress.completedToday} / {progress.dailyTarget || '—'} today</div>
             <button
               className="rounded-md border border-neutral-200 px-3 py-1.5 text-sm dark:border-neutral-800"
-              onClick={fs.toggle}
+              onClick={toggleFullscreen}
             >
               Fullscreen
             </button>
@@ -142,23 +92,23 @@ export default function TasksPage() {
         <div
           ref={containerRef}
           className={
-            fs.isFullscreen
+            isFullscreen
               ? 'fixed inset-0 z-40 bg-black'
               : 'rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950 pb-6'
           }
         >
           {/* Top glass bar in fullscreen */}
-          {fs.isFullscreen && (
+          {isFullscreen && (
             <div className="pointer-events-none absolute left-0 right-0 top-0 z-50 p-2">
               <div className="pointer-events-auto mx-auto max-w-screen-sm rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-md flex items-center justify-between">
                 <div>Progress: {progress.completedToday} / {progress.dailyTarget || '—'} today</div>
-                <button onClick={fs.toggle} className="rounded-md border border-white/20 px-2 py-1 text-xs text-white/90 hover:bg-white/10">Exit</button>
+                <button onClick={toggleFullscreen} className="rounded-md border border-white/20 px-2 py-1 text-xs text-white/90 hover:bg-white/10">Exit</button>
               </div>
             </div>
           )}
 
           {/* Immersive viewer area */}
-          <div ref={viewRef} className={fs.isFullscreen ? 'absolute inset-0 z-0' : 'relative z-0 w-full overflow-hidden rounded-lg bg-black h-[45dvh] sm:h-[50dvh] md:h-[60dvh] max-h-[70dvh]'}>
+          <div ref={viewRef} className={isFullscreen ? 'absolute inset-0 z-0' : 'relative z-0 w-full overflow-hidden rounded-lg bg-black h-[45dvh] sm:h-[50dvh] md:h-[60dvh] max-h-[70dvh]'}>
             <TransformWrapper
               limitToBounds
               centerOnInit
@@ -168,12 +118,12 @@ export default function TasksPage() {
               minScale={1}
               maxScale={5}
             >
-              <TransformComponent wrapperClass={fs.isFullscreen ? 'h-full w-full' : 'h-full w-full'} contentClass="flex h-full w-full items-center justify-center">
+              <TransformComponent wrapperClass={isFullscreen ? 'h-full w-full' : 'h-full w-full'} contentClass="flex h-full w-full items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={task.image.url}
                   alt="task image"
-                  className={fs.isFullscreen ? 'max-h-full max-w-full select-none' : 'max-h-full max-w-full select-none'}
+                  className={isFullscreen ? 'max-h-full max-w-full select-none' : 'max-h-full max-w-full select-none'}
                   draggable={false}
                   onLoad={(e) => {
                     const { naturalWidth, naturalHeight } = e.currentTarget
@@ -186,7 +136,7 @@ export default function TasksPage() {
           </div>
 
           {/* Non-fullscreen question + buttons inside card */}
-          {!fs.isFullscreen && (
+          {!isFullscreen && (
             <>
               <div className="relative z-10 mt-4 rounded-lg border border-neutral-200 bg-white p-3 text-base shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 {task.image.question}
@@ -211,7 +161,7 @@ export default function TasksPage() {
           )}
 
           {/* Fullscreen bottom glass controls */}
-          {fs.isFullscreen && (
+          {isFullscreen && (
             <div className="pointer-events-none absolute left-0 right-0 bottom-0 z-50 p-2 pb-3">
               <div className="pointer-events-auto mx-auto max-w-screen-sm rounded-xl border border-white/10 bg-white/10 p-3 text-white backdrop-blur-md">
                 <div className="mb-2 text-center text-sm text-white/90">{task.image.question}</div>
@@ -235,13 +185,10 @@ export default function TasksPage() {
             </div>
           )}
         </div>
-        <style jsx global>{`
-          .pseudo-fs { position: fixed !important; inset: 0 !important; z-index: 50 !important; background: #000 !important; padding: 8px; display: flex; flex-direction: column; height: 100dvh; }
-          .no-scroll { overflow: hidden; }
-        `}</style>
+        {/* no native fullscreen classes needed */}
       </div>
     )
-  }, [loading, task, answering, transition, onAnswer, noneRemaining, progress.completedToday, progress.dailyTarget, fs.isFullscreen, fs.toggle])
+  }, [loading, task, answering, transition, onAnswer, noneRemaining, progress.completedToday, progress.dailyTarget, isFullscreen, toggleFullscreen])
 
   return (
     <WorkerLayout>
