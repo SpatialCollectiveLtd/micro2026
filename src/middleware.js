@@ -6,7 +6,7 @@ export async function middleware(request) {
   const { pathname } = request.nextUrl
 
   // Protect all routes under /dashboard, /tasks, /profile
-  const protectedPrefixes = ['/dashboard', '/tasks', '/profile']
+  const protectedPrefixes = ['/dashboard', '/tasks', '/profile', '/messages']
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
 
   // Admin routes require ADMIN role
@@ -24,20 +24,16 @@ export async function middleware(request) {
   try {
     const user = await prisma.user.findUnique({ where: { id: session.id }, select: { sessionId: true, role: true } })
     if (!user || (user.sessionId && user.sessionId !== session.sid)) {
-      const res = NextResponse.redirect(new URL('/login', request.url))
-      res.headers.append('set-cookie', 'mt_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
-      return res
+      // Redirect to session conflict page and keep the cookie so the user can resolve it
+      return NextResponse.redirect(new URL('/session-conflict', request.url))
     }
     // Optional: tighten role consistency
     if (isAdminRoute && user.role !== 'ADMIN') {
-      const res = NextResponse.redirect(new URL('/login', request.url))
-      res.headers.append('set-cookie', 'mt_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
-      return res
+      // Not an admin trying to access admin route: send to dashboard without clearing session
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   } catch {
-    const res = NextResponse.redirect(new URL('/login', request.url))
-    res.headers.append('set-cookie', 'mt_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
-    return res
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // (Admin route role check handled above with DB consistency validation.)
@@ -46,5 +42,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/tasks/:path*', '/profile/:path*', '/admin/:path*'],
+  matcher: ['/dashboard/:path*', '/tasks/:path*', '/profile/:path*', '/messages/:path*', '/admin/:path*'],
 }
