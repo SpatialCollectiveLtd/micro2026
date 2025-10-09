@@ -1,11 +1,14 @@
 import prisma from '@/lib/prisma'
 import { parseSessionCookie } from '@/lib/session'
+import { getActiveUser } from '@/lib/auth'
 
 export async function GET(request) {
   const session = await parseSessionCookie(request)
   if (!session?.id) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
-  const user = await prisma.user.findUnique({ where: { id: session.id }, select: { id: true, name: true, phone: true, role: true, settlementId: true } })
-  if (!user) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+  const active = await getActiveUser(session)
+  if (!active) return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+  if (active?.conflict) return Response.json({ ok: false, conflict: true, error: 'Session conflict' }, { status: 409 })
+  const user = await prisma.user.findUnique({ where: { id: active.user.id }, select: { id: true, name: true, phone: true, role: true, settlementId: true } })
 
   const start = new Date(); start.setHours(0,0,0,0)
   const end = new Date(); end.setHours(23,59,59,999)

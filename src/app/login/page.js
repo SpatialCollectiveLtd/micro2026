@@ -51,6 +51,10 @@ export default function LoginPage() {
           }
           return
         }
+        if (who.status === 409) {
+          window.location.href = '/session-conflict'
+          return
+        }
         // fallback to worker dashboard if role fetch fails
         window.location.href = '/dashboard'
         return
@@ -66,6 +70,10 @@ export default function LoginPage() {
         const info = await who.json().catch(() => null)
         const role = info?.user?.role
         window.location.href = role === 'ADMIN' ? '/admin/campaigns' : '/dashboard'
+        return
+      }
+      if (who.status === 409) {
+        window.location.href = '/session-conflict'
         return
       }
       window.location.href = '/dashboard'
