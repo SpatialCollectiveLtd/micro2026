@@ -2,6 +2,8 @@ import WorkerLayout from '@/app/(worker)/layout'
 import prisma from '@/lib/prisma'
 import { cookies as readCookies } from 'next/headers'
 import { unsealSessionToken } from '@/lib/session'
+import { getActiveUser } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -57,20 +59,24 @@ function ProgressRing({ current = 0, goal = 300 }) {
 export default async function DashboardPage() {
   // Parse sealed session cookie using iron-session
   const sessionCookie = readCookies().get('mt_session')?.value
-  let userId = null
+  let session = null
   if (sessionCookie) {
-    const decoded = await unsealSessionToken(sessionCookie)
-    userId = decoded?.id || null
+    session = await unsealSessionToken(sessionCookie)
   }
 
-  // Fallback: redirect handled by middleware; here just guard UI
-  if (!userId) {
+  if (!session?.id) {
     return (
       <div className="p-6 text-center">
         <p className="text-neutral-500">Redirecting...</p>
       </div>
     )
   }
+
+  // Enforce single active session by validating sid against DB
+  const active = await getActiveUser(session)
+  if (!active) redirect('/login')
+  if (active?.conflict) redirect('/session-conflict')
+  const userId = active.user.id
 
   const { user, completedToday, notices } = await getData(userId)
   const goal = 300
