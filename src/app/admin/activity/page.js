@@ -1,8 +1,7 @@
 import prisma from '@/lib/prisma'
 import { Table, THead, TH, TR, TD } from '@/components/ui/table'
 import Link from 'next/link'
-import Button from '@/components/ui/button'
-import React from 'react'
+import ClientDownloadButton from './ClientDownloadButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,8 +16,8 @@ export default async function ActivityPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">User Activity</h1>
-        {/* Client wrapper to show generating state */}
-        <ClientDownloadButton />
+  {/* Client wrapper to show generating state */}
+  <ClientDownloadButton />
       </div>
       <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
         <Table>
@@ -51,14 +50,4 @@ export default async function ActivityPage() {
   )
 }
 
-function ClientDownloadButton() {
-  const [gen, setGen] = React.useState(false)
-  return (
-    <a
-      href="/api/admin/reports/activity?format=csv"
-      onClick={() => setGen(true)}
-    >
-      <Button disabled={gen}>{gen ? (<span className="inline-flex items-center gap-2"><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Generating…</span>) : 'Download CSV'}</Button>
-    </a>
-  )
-}
+// ClientDownloadButton moved to a client component file
