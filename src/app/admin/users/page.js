@@ -61,7 +61,7 @@ export default function UsersPage() {
     } finally { setLoading(false) }
   }
 
-  const roles = ['WORKER', 'ADMIN']
+  const roles = useMemo(() => ['WORKER', 'ADMIN'], [])
   const roleOptions = useMemo(() => [{ value: '', label: 'All' }, ...roles.map(r => ({ value: r, label: r }))], [roles])
   const roleSelected = useMemo(() => roleOptions.find(o => o.value === filters.role) || roleOptions[0], [roleOptions, filters.role])
   const settlementOptions = useMemo(() => [{ value: '', label: 'All' }, ...settlements.map(s => ({ value: s.id, label: s.name }))], [settlements])

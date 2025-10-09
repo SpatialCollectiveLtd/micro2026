@@ -1,18 +1,21 @@
 import WorkerLayout from '@/app/(worker)/layout'
+import Skeleton from '@/components/Skeleton'
 
 export default function Loading() {
   return (
     <WorkerLayout>
       <div className="space-y-4">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-          <div className="h-5 w-28 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4 shadow-sm backdrop-blur-md dark:border-neutral-800/60 dark:bg-neutral-900/60">
+          <Skeleton className="h-5 w-28" />
         </div>
-        <div className="rounded-xl border border-neutral-200 bg-white p-0 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
-          <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-0 shadow-sm backdrop-blur-md dark:border-neutral-800/60 dark:bg-neutral-900/60">
+          <ul className="divide-y divide-white/10">
             {Array.from({ length: 6 }).map((_, i) => (
               <li key={i} className="p-4">
-                <div className="h-4 w-40 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
-                <div className="mt-2 h-3 w-64 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
+                <Skeleton className="h-4 w-40" />
+                <div className="mt-2">
+                  <Skeleton className="h-3 w-64" />
+                </div>
               </li>
             ))}
           </ul>

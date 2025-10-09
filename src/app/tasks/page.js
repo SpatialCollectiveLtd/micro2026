@@ -146,7 +146,7 @@ export default function TasksPage() {
         </div>
       </div>
     )
-  }, [loading, task, answering, transition, onAnswer, imgSize, noneRemaining, progress.completedToday, progress.dailyTarget])
+  }, [loading, task, answering, transition, onAnswer, noneRemaining, progress.completedToday, progress.dailyTarget])
 
   return (
     <WorkerLayout>
